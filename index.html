@@ -3,1212 +3,533 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão do Terreno - Controle de Pagamentos</title>
+    <title>Gestão do Terreno</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            padding: 30px;
-            background: white;
-            border-radius: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        h1 {
-            font-size: 48px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .login-container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 400px;
-            margin: 50px auto;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-title {
-            color: #666;
-            font-size: 14px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .progress-bar {
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 15px;
-        }
-
-        .progress-fill {
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            height: 30px;
-            border-radius: 10px;
-            transition: width 0.5s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            background: rgba(255,255,255,0.9);
-            border: none;
-            padding: 12px 25px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 700;
-            color: #000;
-            transition: all 0.3s;
-        }
-
-        .tab-btn.active {
-            background: white;
-            color: #667eea;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .tab-content {
-            display: none;
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.5s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-
-        th {
-            background: #f8f9fa;
-            color: #333;
-            font-weight: bold;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #000;
-            font-weight: bold;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #000;
-            font-weight: bold;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: transform 0.2s;
-        }
-
-        button:hover {
-            transform: scale(1.05);
-        }
-
-        .carrossel-container {
-            position: relative;
-            margin: 20px 0;
-        }
-
-        .carrossel {
-            display: flex;
-            overflow-x: auto;
-            scroll-behavior: smooth;
-            gap: 15px;
-            padding: 20px 10px;
-            scrollbar-width: thin;
-            cursor: grab;
-        }
-
-        .carrossel::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        .carrossel::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-
-        .carrossel::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 10px;
-        }
-
-        .mes-card {
-            min-width: 140px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-            transition: all 0.3s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .mes-card.pago {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-        }
-
-        .mes-card .tarja {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #ef4444;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: bold;
-            transform: rotate(5deg);
-        }
-
-        .carrossel-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(102, 126, 234, 0.8);
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-            z-index: 10;
-            transition: all 0.3s;
-        }
-
-        .carrossel-btn:hover {
-            background: #667eea;
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .btn-left {
-            left: -20px;
-        }
-
-        .btn-right {
-            right: -20px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .badge-confirmado {
-            background: #10b981;
-            color: white;
-        }
-
-        .badge-pendente {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .btn-editar {
-            background: #3b82f6;
-            padding: 5px 10px;
-            font-size: 12px;
-            margin-right: 5px;
-            color: white;
-        }
-
-        .btn-excluir {
-            background: #ef4444;
-            padding: 5px 10px;
-            font-size: 12px;
-            color: white;
-        }
-
-        .btn-confirmar {
-            background: #10b981;
-            padding: 5px 10px;
-            font-size: 12px;
-            color: white;
-        }
-
-        .links-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .link-card {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-        }
-
-        .link-card a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .galeria-fotos {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .foto-item {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .foto-item img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 10px;
-            transition: transform 0.3s;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.9);
-        }
-
-        .modal-content {
-            margin: auto;
-            display: block;
-            width: 90%;
-            max-width: 800px;
-            margin-top: 50px;
-        }
-
-        .close {
-            position: absolute;
-            right: 35px;
-            top: 15px;
-            color: white;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .termo-container {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px 0;
-            border: 2px solid #667eea;
-        }
-
-        .termo-texto {
-            font-size: 14px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: white;
-            border-radius: 10px;
-        }
-
-        @media (max-width: 768px) {
-            .stats-grid, .links-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .tabs {
-                flex-direction: column;
-            }
-            
-            .carrossel-btn {
-                width: 30px;
-                height: 30px;
-                font-size: 16px;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; padding: 30px; background: white; border-radius: 20px; margin-bottom: 30px; }
+        h1 { font-size: 48px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .login-container { background: white; border-radius: 20px; padding: 40px; max-width: 400px; margin: 50px auto; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 15px; }
+        .stat-value { font-size: 32px; font-weight: bold; }
+        .progress-bar { background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-top: 15px; }
+        .progress-fill { background: linear-gradient(90deg, #667eea, #764ba2); height: 30px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { background: rgba(255,255,255,0.9); border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .tab-btn.active { background: white; color: #667eea; }
+        .tab-content { display: none; background: white; border-radius: 20px; padding: 30px; }
+        .tab-content.active { display: block; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        button { background: linear-gradient(135deg, #667eea, #764ba2); color: black; font-weight: bold; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; }
+        
+        .carrossel-container { position: relative; margin: 20px 0; }
+        .carrossel { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 15px; padding: 20px 10px; scrollbar-width: thin; }
+        .carrossel::-webkit-scrollbar { height: 8px; }
+        .carrossel::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .carrossel::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
+        .carrossel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(102,126,234,0.8); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; z-index: 10; }
+        .carrossel-btn:hover { background: #667eea; }
+        .btn-left { left: -20px; }
+        .btn-right { right: -20px; }
+        
+        .mes-card { min-width: 140px; background: #f8f9fa; border-radius: 15px; padding: 20px; text-align: center; position: relative; }
+        .mes-card.pago { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .mes-card .tarja { position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 4px 8px; border-radius: 20px; font-size: 10px; font-weight: bold; }
+        
+        .badge-confirmado { background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; display: inline-block; }
+        .badge-pendente { background: #f59e0b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; display: inline-block; }
+        .btn-editar, .btn-excluir, .btn-confirmar { padding: 5px 10px; font-size: 12px; margin: 2px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-editar { background: #3b82f6; color: white; }
+        .btn-excluir { background: #ef4444; color: white; }
+        .btn-confirmar { background: #10b981; color: white; }
+        
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } .tabs { flex-direction: column; } .carrossel-btn { width: 30px; height: 30px; font-size: 16px; } .btn-left { left: -10px; } .btn-right { right: -10px; } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Modal para visualização de fotos -->
-        <div id="modal" class="modal">
-            <span class="close" onclick="fecharModal()">&times;</span>
-            <img class="modal-content" id="modalImg">
+<div class="container">
+    <!-- Login -->
+    <div id="loginSection" class="login-container">
+        <h2 style="text-align: center;">🔐 Acesso ao Sistema</h2>
+        <div class="form-group">
+            <label>👤 Usuário</label>
+            <select id="usuarioSelect">
+                <option value="Valtail">Valtail Menegassi (Admin)</option>
+                <option value="Victor Hugo">Victor Hugo (Vendedor)</option>
+                <option value="Lázaro">Lázaro (Comprador)</option>
+                <option value="Débora">Débora</option>
+            </select>
         </div>
-
-        <!-- Login Section -->
-        <div id="loginSection" class="login-container">
-            <h2 style="text-align: center; margin-bottom: 30px;">🔐 Acesso ao Sistema</h2>
-            <div class="form-group">
-                <label>👤 Usuário</label>
-                <select id="usuarioSelect">
-                    <option value="Valtail">Valtail Menegassi (Admin)</option>
-                    <option value="Victor Hugo">Victor Hugo Bailarin (Vendedor)</option>
-                    <option value="Lázaro">Lázaro Armando (Comprador)</option>
-                    <option value="Débora">Débora Fernanda</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>🔑 Senha</label>
-                <input type="password" id="senhaInput" placeholder="Digite sua senha">
-            </div>
-            <button onclick="fazerLogin()" style="width: 100%;">Entrar</button>
+        <div class="form-group">
+            <label>🔑 Senha</label>
+            <input type="password" id="senhaInput" placeholder="Digite sua senha">
         </div>
-
-        <!-- Main App -->
-        <div id="appSection" style="display: none;">
-            <div class="header">
-                <h1>🏠 GESTÃO DO TERRENO</h1>
-                <div class="subtitle">Sistema de Controle de Pagamentos - Início: Abril/2025</div>
-                <div style="margin-top: 10px; color: #667eea;" id="usuarioLogado"></div>
-                <div id="adminBadge" style="display: none; margin-top: 5px; color: #ef4444; font-weight: bold;">👑 Modo Administrador</div>
-                <div id="vendedorBadge" style="display: none; margin-top: 5px; color: #10b981; font-weight: bold;">💰 Vendedor - Você precisa confirmar os pagamentos!</div>
-<div style="text-align: right; margin-top: 15px;">
-    <button onclick="deslogar()" style="background: #ef4444; color: white; padding: 8px 20px; font-size: 14px;">
-        🚪 Sair do Sistema
-    </button>
-            </div>
-
-            <!-- Stats Cards -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-title">💰 Total Pago</div>
-                    <div class="stat-value" id="totalPago">R$ 0,00</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">⏳ Saldo Devedor</div>
-                    <div class="stat-value" id="saldoDevedor">R$ 0,00</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">📊 Progresso</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressoFill">0%</div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-title">✅ Parcelas Pagas</div>
-                    <div class="stat-value" id="parcelasPagas">0</div>
-                </div>
-            </div>
-
-            <!-- Links Section - Visível apenas para Admin -->
-            <div class="links-container" id="adminLinksSection" style="display: none;">
-                <div class="link-card">
-                    <h4>📄 Contrato de Compra</h4>
-                    <input type="url" id="linkContrato" placeholder="URL do contrato" style="margin: 10px 0;">
-                    <button onclick="salvarLinkContrato()" style="padding: 8px 15px; font-size: 14px;">Salvar Link</button>
-                    <div id="displayContrato" style="margin-top: 10px;"></div>
-                </div>
-                <div class="link-card">
-                    <h4>📸 Fotos do Terreno</h4>
-                    <input type="url" id="linkFoto" placeholder="URL da foto" style="margin: 10px 0;">
-                    <button onclick="adicionarFoto()" style="padding: 8px 15px; font-size: 14px;">Adicionar Foto</button>
-                    <div id="galeriaFotos" class="galeria-fotos"></div>
-                </div>
-            </div>
-
-            <!-- Links Section - Visualização para outros usuários -->
-            <div class="links-container" id="viewLinksSection" style="display: none;">
-                <div class="link-card">
-                    <h4>📄 Contrato de Compra</h4>
-                    <div id="displayContratoView" style="margin-top: 10px;"></div>
-                </div>
-                <div class="link-card">
-                    <h4>📸 Fotos do Terreno</h4>
-                    <div id="galeriaFotosView" class="galeria-fotos"></div>
-                </div>
-            </div>
-
-            <!-- Tabs -->
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('pagamentos')">💰 Pagamentos</button>
-                <button class="tab-btn" onclick="switchTab('adicionar')">➕ Adicionar Pagamento</button>
-                <button class="tab-btn" onclick="switchTab('cronograma')">📅 Cronograma</button>
-                <button class="tab-btn" onclick="switchTab('observacoes')">📝 Observações</button>
-                <div id="adminTab" style="display: none;">
-                    <button class="tab-btn" onclick="switchTab('admin')">⚙️ Admin</button>
-                </div>
-            </div>
-
-            <!-- Tab: Pagamentos -->
-            <div id="tab-pagamentos" class="tab-content active">
-                <h3>📋 Histórico de Pagamentos</h3>
-                <div style="overflow-x: auto;">
-                    <table id="tabelaPagamentos">
-                        <thead>
-                            <tr><th>Data</th><th>Valor</th><th>Descrição</th><th>Usuário</th><th>Status</th><th>Ações</th></tr>
-                        </thead>
-                        <tbody id="listaPagamentos"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tab: Adicionar Pagamento -->
-            <div id="tab-adicionar" class="tab-content">
-                <h3>➕ Novo Pagamento</h3>
-                <form id="formPagamento">
-                    <div class="form-group">
-                        <label>📅 Data</label>
-                        <input type="date" id="dataPagamento" required>
-                    </div>
-                    <div class="form-group">
-                        <label>💰 Valor (R$)</label>
-                        <input type="number" id="valorPagamento" step="0.01" required placeholder="Ex: 3000.00">
-                        <small>Cada parcela = R$ 3.000 | Pague mais para adiantar parcelas!</small>
-                    </div>
-                    <div class="form-group">
-                        <label>📝 Descrição</label>
-                        <textarea id="obsPagamento" rows="3" placeholder="Ex: Pagamento via Itaú para BB"></textarea>
-                    </div>
-                    <button type="submit">Registrar Pagamento</button>
-                </form>
-            </div>
-
-            <!-- Tab: Cronograma -->
-            <div id="tab-cronograma" class="tab-content">
-                <h3>📅 Cronograma de Pagamentos</h3>
-                <div class="carrossel-container">
-                    <button class="carrossel-btn btn-left" onclick="rolarCarrossel(-1)">◀</button>
-                    <div class="carrossel" id="carrosselMeses"></div>
-                    <button class="carrossel-btn btn-right" onclick="rolarCarrossel(1)">▶</button>
-                </div>
-                <div style="margin-top: 20px; background: #f0f0f0; padding: 15px; border-radius: 8px;">
-                    <p><strong>📌 Legenda:</strong></p>
-                    <p>🟢 <span style="color: #10b981;">Verde com tarja "PAGA"</span> = Parcela quitada</p>
-                    <p>⚪ <span style="color: #666;">Branco</span> = Parcela pendente</p>
-                    <p>💡 <strong>Total do terreno: R$ 100.000</strong> | Parcelas de R$ 3.000</p>
-                    <hr style="margin: 10px 0;">
-                    <p>💰 <strong>Valor já pago:</strong> <span style="color: #10b981; font-size: 18px;" id="valorPagoLegenda">R$ 0,00</span></p>
-                    <p>📊 <strong>Valor restante:</strong> <span style="color: #ef4444; font-size: 18px;" id="valorRestanteLegenda">R$ 0,00</span></p>
-                </div>
-            </div>
-
-            <!-- Tab: Observações -->
-            <div id="tab-observacoes" class="tab-content">
-                <h3>💬 Observações do Grupo</h3>
-                <div id="listaObservacoes" style="margin-bottom: 20px; max-height: 400px; overflow-y: auto;"></div>
-                <form id="formObservacao">
-                    <div class="form-group">
-                        <label>✏️ Nova Observação</label>
-                        <textarea id="novaObservacao" rows="3" required placeholder="Digite sua observação aqui..."></textarea>
-                    </div>
-                    <button type="submit">Adicionar Observação</button>
-                </form>
-            </div>
-
-            <!-- Tab: Admin -->
-            <div id="tab-admin" class="tab-content">
-                <h3>⚙️ Administração (Apenas Admin)</h3>
-                <div id="adminPanel">
-                    <div class="form-group">
-                        <button onclick="exportarDados()">📥 Exportar Dados</button>
-                        <button onclick="importarDados()">📤 Importar Dados</button>
-                        <button onclick="resetarDados()" style="background: #ef4444;">⚠️ Resetar Tudo</button>
-                    </div>
-                    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="processarImportacao(event)">
-                </div>
-            </div>
-        </div>
+        <button onclick="fazerLogin()" style="width: 100%;">Entrar</button>
     </div>
 
-    <script>
-        // Configurações
-        const META_TOTAL = 100000;
-        const VALOR_PARCELA = 3000;
-        
-        const SENHAS = {
-            "Valtail": "valtail0549",
-            "Victor Hugo": "victor100",
-            "Lázaro": "lazaro1234",
-            "Débora": "debora0549"
-        };
+    <!-- App -->
+    <div id="appSection" style="display: none;">
+        <div class="header">
+            <h1>🏠 GESTÃO DO TERRENO</h1>
+            <div id="usuarioLogado" style="margin-top: 10px;"></div>
+            <div id="adminBadge" style="display: none; color: #ef4444; font-weight: bold;">👑 Modo Administrador</div>
+            <div id="vendedorBadge" style="display: none; color: #10b981; font-weight: bold;">💰 Vendedor</div>
+            <button onclick="deslogar()" style="background: #ef4444; color: white; margin-top: 15px;">🚪 Sair</button>
+        </div>
 
-        let pagamentos = [];
-        let observacoes = [];
-        let links = {
-            contrato: "https://drive.google.com/file/d/1T3tId5802KtocV3yFTaLD6DnAX2Ig6Oy/view?usp=sharing",
-            fotos: []
-        };
-        let usuarioAtual = null;
-        let ehAdmin = false;
-        let ehVendedor = false;
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-title">💰 Total Pago</div><div class="stat-value" id="totalPago">R$ 0,00</div></div>
+            <div class="stat-card"><div class="stat-title">⏳ Saldo Devedor</div><div class="stat-value" id="saldoDevedor">R$ 0,00</div></div>
+            <div class="stat-card"><div class="stat-title">📊 Progresso</div><div class="progress-bar"><div class="progress-fill" id="progressoFill">0%</div></div></div>
+            <div class="stat-card"><div class="stat-title">✅ Parcelas Pagas</div><div class="stat-value" id="parcelasPagas">0</div></div>
+        </div>
 
-        // Função para converter link do Google Drive
-        function converterGoogleDriveLink(url) {
-            if (url.includes('drive.google.com')) {
-                const fileId = url.match(/[-\w]{25,}/);
-                if (fileId) {
-                    return `https://drive.google.com/thumbnail?id=${fileId[0]}&sz=w400`;
-                }
-            }
-            return url;
-        }
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('pagamentos')">💰 Pagamentos</button>
+            <button class="tab-btn" onclick="switchTab('adicionar')">➕ Adicionar</button>
+            <button class="tab-btn" onclick="switchTab('cronograma')">📅 Cronograma</button>
+            <button class="tab-btn" onclick="switchTab('observacoes')">📝 Observações</button>
+            <div id="adminTab" style="display: none;"><button class="tab-btn" onclick="switchTab('admin')">⚙️ Admin</button></div>
+        </div>
 
-        function carregarDados() {
-            const savedPagamentos = localStorage.getItem('terreno_pagamentos');
-            const savedObservacoes = localStorage.getItem('terreno_observacoes');
-            const savedLinks = localStorage.getItem('terreno_links');
-            
-            if (savedPagamentos) {
-                pagamentos = JSON.parse(savedPagamentos);
-            } else {
-                pagamentos = [
-                    { id: 1, data: '2026-04-06', valor: 5000, obs: 'Itaú para Banco do Brasil - Lázaro', usuario: 'Lázaro', confirmado: false },
-                    { id: 2, data: '2026-04-06', valor: 5000, obs: 'Itaú para Banco do Brasil - Lázaro', usuario: 'Lázaro', confirmado: false },
-                    { id: 3, data: '2026-04-06', valor: 3620, obs: 'Rosa comprou celular para Victor', usuario: 'Victor Hugo', confirmado: false }
-                ];
-            }
-            
-            if (savedObservacoes) {
-                observacoes = JSON.parse(savedObservacoes);
-            } else {
-                observacoes = [
-                    { id: 1, texto: '🎉 Sistema iniciado! Aguardando confirmação do vendedor Victor Hugo.', data: new Date().toISOString().split('T')[0], usuario: 'Sistema' }
-                ];
-            }
-            
-            if (savedLinks) {
-                links = JSON.parse(savedLinks);
-            }
-        }
+        <!-- Tab Pagamentos -->
+        <div id="tab-pagamentos" class="tab-content active">
+            <h3>📋 Histórico de Pagamentos</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead><tr><th>Data</th><th>Valor</th><th>Descrição</th><th>Usuário</th><th>Status</th><th>Ações</th></tr></thead>
+                    <tbody id="listaPagamentos"></tbody>
+                </table>
+            </div>
+        </div>
 
-        function salvarDados() {
-            localStorage.setItem('terreno_pagamentos', JSON.stringify(pagamentos));
-            localStorage.setItem('terreno_observacoes', JSON.stringify(observacoes));
-            localStorage.setItem('terreno_links', JSON.stringify(links));
-            atualizarDashboard();
-            atualizarLinks();
-        }
+        <!-- Tab Adicionar -->
+        <div id="tab-adicionar" class="tab-content">
+            <h3>➕ Novo Pagamento</h3>
+            <form id="formPagamento">
+                <div class="form-group"><label>📅 Data</label><input type="date" id="dataPagamento" required></div>
+                <div class="form-group"><label>💰 Valor (R$)</label><input type="number" id="valorPagamento" step="0.01" required placeholder="Ex: 3000.00"></div>
+                <div class="form-group"><label>📝 Descrição</label><textarea id="obsPagamento" rows="3"></textarea></div>
+                <button type="submit">Registrar Pagamento</button>
+            </form>
+        </div>
 
-        function calcularTotalPago() {
-            // Soma apenas pagamentos CONFIRMADOS
-            return pagamentos.filter(p => p.confirmado === true).reduce((total, p) => total + p.valor, 0);
-        }
+        <!-- Tab Cronograma -->
+        <div id="tab-cronograma" class="tab-content">
+            <h3>📅 Cronograma de Pagamentos (Abril/2026 - Março/2028)</h3>
+            <div class="carrossel-container">
+                <button class="carrossel-btn btn-left" onclick="rolarCarrossel(-1)">◀</button>
+                <div class="carrossel" id="carrosselMeses"></div>
+                <button class="carrossel-btn btn-right" onclick="rolarCarrossel(1)">▶</button>
+            </div>
+            <div style="margin-top: 20px; background: #f0f0f0; padding: 15px; border-radius: 8px;">
+                <p><strong>📌 Legenda:</strong></p>
+                <p>🟢 <span style="color: #10b981;">Verde com tarja "PAGA"</span> = Parcela quitada</p>
+                <p>⚪ <span style="color: #666;">Branco</span> = Parcela pendente</p>
+                <p>💡 <strong>Total do terreno: R$ 100.000</strong> | Parcelas de R$ 3.000</p>
+                <hr>
+                <p>💰 <strong>Valor já pago:</strong> <span style="color: #10b981; font-size: 18px;" id="valorPagoLegenda">R$ 0,00</span></p>
+                <p>📊 <strong>Valor restante:</strong> <span style="color: #ef4444; font-size: 18px;" id="valorRestanteLegenda">R$ 0,00</span></p>
+            </div>
+        </div>
 
-        function calcularParcelasPagas() {
-            const totalPago = calcularTotalPago();
-            return Math.floor(totalPago / VALOR_PARCELA);
-        }
+        <!-- Tab Observações -->
+        <div id="tab-observacoes" class="tab-content">
+            <h3>💬 Observações do Grupo</h3>
+            <div id="listaObservacoes" style="margin-bottom: 20px; max-height: 400px; overflow-y: auto;"></div>
+            <form id="formObservacao">
+                <div class="form-group"><textarea id="novaObservacao" rows="3" placeholder="Digite sua observação aqui..."></textarea></div>
+                <button type="submit">Adicionar Observação</button>
+            </form>
+        </div>
 
-        function atualizarDashboard() {
-            const totalPago = calcularTotalPago();
-            const saldoDevedor = META_TOTAL - totalPago;
-            const percentual = (totalPago / META_TOTAL) * 100;
-            const parcelasPagas = calcularParcelasPagas();
-            
-            document.getElementById('totalPago').innerHTML = `R$ ${totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-            document.getElementById('saldoDevedor').innerHTML = `R$ ${saldoDevedor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-            document.getElementById('parcelasPagas').innerHTML = parcelasPagas;
-            
-            const progressFill = document.getElementById('progressoFill');
-            progressFill.style.width = `${percentual}%`;
-            progressFill.innerHTML = `${percentual.toFixed(1)}%`;
-            
-            atualizarTabelaPagamentos();
-            atualizarCronograma();
-            atualizarLegendaValores();
+        <!-- Tab Admin -->
+        <div id="tab-admin" class="tab-content">
+            <h3>⚙️ Administração</h3>
+            <button onclick="exportarDados()">📥 Exportar Dados</button>
+            <button onclick="importarDados()">📤 Importar Dados</button>
+            <button onclick="resetarDados()" style="background: #ef4444;">⚠️ Resetar Tudo</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="processarImportacao(event)">
+        </div>
+    </div>
+</div>
+
+<script>
+// Configurações
+const META_TOTAL = 100000;
+const VALOR_PARCELA = 3000;
+
+const SENHAS = {
+    "Valtail": "valtail0549",
+    "Victor Hugo": "victor100",
+    "Lázaro": "lazaro1234",
+    "Débora": "debora0549"
+};
+
+let pagamentos = [];
+let observacoes = [];
+let usuarioAtual = null;
+let ehAdmin = false;
+let ehVendedor = false;
+
+// Carregar dados
+function carregarDados() {
+    const saved = localStorage.getItem('terreno_pagamentos');
+    if (saved) {
+        pagamentos = JSON.parse(saved);
+    } else {
+        pagamentos = [
+            { id: 1, data: '2026-04-06', valor: 5000, obs: 'Itaú para Banco do Brasil - Lázaro', usuario: 'Lázaro', confirmado: false },
+            { id: 2, data: '2026-04-06', valor: 5000, obs: 'Itaú para Banco do Brasil - Lázaro', usuario: 'Lázaro', confirmado: false },
+            { id: 3, data: '2026-04-06', valor: 3620, obs: 'Rosa comprou celular para Victor', usuario: 'Victor Hugo', confirmado: false }
+        ];
+    }
+    
+    const savedObs = localStorage.getItem('terreno_observacoes');
+    if (savedObs) {
+        observacoes = JSON.parse(savedObs);
+    } else {
+        observacoes = [
+            { id: 1, texto: '🎉 Sistema iniciado! Aguardando confirmação do vendedor Victor Hugo.', data: new Date().toISOString().split('T')[0], usuario: 'Sistema' }
+        ];
+    }
+}
+
+function salvarDados() {
+    localStorage.setItem('terreno_pagamentos', JSON.stringify(pagamentos));
+    localStorage.setItem('terreno_observacoes', JSON.stringify(observacoes));
+    atualizarDashboard();
+    atualizarObservacoes();
+}
+
+function calcularTotalPago() {
+    return pagamentos.filter(p => p.confirmado === true).reduce((total, p) => total + p.valor, 0);
+}
+
+function calcularParcelasPagas() {
+    return Math.floor(calcularTotalPago() / VALOR_PARCELA);
+}
+
+function atualizarDashboard() {
+    const totalPago = calcularTotalPago();
+    const saldoDevedor = META_TOTAL - totalPago;
+    const percentual = (totalPago / META_TOTAL) * 100;
+    const parcelasPagas = calcularParcelasPagas();
+    
+    document.getElementById('totalPago').innerHTML = `R$ ${totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    document.getElementById('saldoDevedor').innerHTML = `R$ ${saldoDevedor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    document.getElementById('parcelasPagas').innerHTML = parcelasPagas;
+    
+    const progressFill = document.getElementById('progressoFill');
+    progressFill.style.width = `${percentual}%`;
+    progressFill.innerHTML = `${percentual.toFixed(1)}%`;
+    
+    // Atualiza legenda
+    const valorPagoElem = document.getElementById('valorPagoLegenda');
+    const valorRestanteElem = document.getElementById('valorRestanteLegenda');
+    if (valorPagoElem) valorPagoElem.innerHTML = `R$ ${totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    if (valorRestanteElem) valorRestanteElem.innerHTML = `R$ ${saldoDevedor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+    
+    atualizarTabelaPagamentos();
+    atualizarCronograma();
+}
+
+function atualizarTabelaPagamentos() {
+    const tbody = document.getElementById('listaPagamentos');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    pagamentos.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(p => {
+        const row = tbody.insertRow();
+        const status = p.confirmado ? 
+            '<span class="badge-confirmado">✓ Confirmado</span>' : 
+            '<span class="badge-pendente">⏳ Aguardando confirmação</span>';
+        
+        let botoes = '';
+        if (ehAdmin) {
+            botoes = `<button class="btn-editar" onclick="editarPagamento(${p.id})">✏️</button>
+                      <button class="btn-excluir" onclick="removerPagamento(${p.id})">❌ Excluir</button>`;
+        } else if (ehVendedor && !p.confirmado) {
+            botoes = `<button class="btn-confirmar" onclick="confirmarPagamento(${p.id})">✓ Confirmar Recebimento</button>`;
+        } else if (!ehAdmin && !ehVendedor && !p.confirmado) {
+            botoes = '<span style="color: #f59e0b;">Aguardando vendedor</span>';
+        } else if (p.confirmado) {
+            botoes = '<span style="color: #10b981;">✓ Confirmado</span>';
         }
         
-        function atualizarLegendaValores() {
-            const totalPago = calcularTotalPago();
-            const restante = META_TOTAL - totalPago;
-            
-            const valorPagoElem = document.getElementById('valorPagoLegenda');
-            const valorRestanteElem = document.getElementById('valorRestanteLegenda');
-            
-            if (valorPagoElem) valorPagoElem.innerHTML = `R$ ${totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-            if (valorRestanteElem) valorRestanteElem.innerHTML = `R$ ${restante.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-        }
+        row.innerHTML = `
+            <td>${new Date(p.data).toLocaleDateString('pt-BR')}</td>
+            <td>R$ ${p.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+            <td>${p.obs || '-'}</td>
+            <td>${p.usuario}</td>
+            <td>${status}</td>
+            <td>${botoes}</td>
+        `;
+    });
+}
+
+function atualizarCronograma() {
+    const totalPago = calcularTotalPago();
+    const parcelasPagas = Math.floor(totalPago / VALOR_PARCELA);
+    const carrossel = document.getElementById('carrosselMeses');
+    if (!carrossel) return;
+    
+    carrossel.innerHTML = '';
+    
+    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    let ano = 2026;
+    let mesInicio = 3; // 0=Jan, 1=Fev, 2=Mar, 3=Abril ✅
+    
+    // 24 parcelas (Abril/2026 até Março/2028)
+    for (let i = 0; i < 24; i++) {
+        let mesIdx = (mesInicio + i) % 12;
+        let anoAtual = ano + Math.floor((mesInicio + i) / 12);
+        let pago = i < parcelasPagas;
         
-        function atualizarTabelaPagamentos() {
-            const tbody = document.getElementById('listaPagamentos');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-            
-            pagamentos.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(p => {
-                const row = tbody.insertRow();
-                const status = p.confirmado ? 
-                    '<span class="badge badge-confirmado">✓ Confirmado</span>' : 
-                    '<span class="badge badge-pendente">⏳ Aguardando confirmação do vendedor</span>';
-                
-                let botoes = '';
-                if (ehAdmin) {
-                    botoes = `<button class="btn-editar" onclick="editarPagamento(${p.id})">✏️</button>
-                              <button class="btn-excluir" onclick="removerPagamento(${p.id})">❌ Excluir</button>`;
-                } else if (ehVendedor && !p.confirmado) {
-                    botoes = `<button class="btn-confirmar" onclick="abrirTermoConfirmacao(${p.id}, ${p.valor}, '${p.obs}')">✓ Confirmar Recebimento</button>`;
-                } else if (!ehAdmin && !ehVendedor && !p.confirmado) {
-                    botoes = '<span style="color: #f59e0b;">Aguardando vendedor</span>';
-                } else if (p.confirmado) {
-                    botoes = '<span style="color: #10b981;">✓ Confirmado</span>';
-                }
-                
-                row.innerHTML = `
-                    <td>${new Date(p.data).toLocaleDateString('pt-BR')}</td>
-                    <td>R$ ${p.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                    <td>${p.obs || '-'}</td>
-                    <td>${p.usuario}</td>
-                    <td>${status}</td>
-                    <td>${botoes}</td>
-                `;
-            });
-        }
-        
-        function atualizarCronograma() {
-            const totalPago = calcularTotalPago();
-            const parcelasPagas = Math.floor(totalPago / VALOR_PARCELA);
-            const carrossel = document.getElementById('carrosselMeses');
-            if (!carrossel) return;
-            
-            carrossel.innerHTML = '';
-            
-            const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-            let ano = 2025;
-            let mesInicio = 3;
-            
-            for (let i = 0; i < 24; i++) {
-                let mesIdx = (mesInicio + i) % 12;
-                let anoAtual = ano + Math.floor((mesInicio + i) / 12);
-                let pago = i < parcelasPagas;
-                
-                const div = document.createElement('div');
-                div.className = `mes-card ${pago ? 'pago' : ''}`;
-                div.innerHTML = `
-                    <div class="mes-ano">${meses[mesIdx]}/${anoAtual}</div>
-                    <div class="valor">R$ ${VALOR_PARCELA.toLocaleString('pt-BR')}</div>
-                    ${pago ? '<div class="tarja">PAGA ✓</div>' : ''}
-                `;
-                carrossel.appendChild(div);
-            }
-        }
-        
-        function rolarCarrossel(direcao) {
-            const carrossel = document.getElementById('carrosselMeses');
-            if (carrossel) {
-                const scrollAmount = 300;
-                carrossel.scrollLeft += direcao * scrollAmount;
-            }
-        }
-        
-        function abrirTermoConfirmacao(id, valor, obs) {
-            const modalHtml = `
-                <div id="modalTermo" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-                    <div style="background: white; padding: 30px; border-radius: 20px; max-width: 600px; width: 90%; max-height: 80%; overflow-y: auto;">
-                        <h3 style="margin-bottom: 20px; color: #10b981;">📄 TERMO DE CONFIRMAÇÃO DE RECEBIMENTO</h3>
-                        <div class="termo-container">
-                            <div class="termo-texto">
-                                <p><strong>Declaro para os devidos fins que:</strong></p>
-                                <p style="margin: 15px 0;">Recebi o valor de <strong>R$ ${valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong> (${obterExtenso(valor)})</p>
-                                <p>Referente ao pagamento do <strong>TERRENO</strong>, conforme descrição:</p>
-                                <p style="background: #f0f0f0; padding: 10px; border-radius: 8px; margin: 10px 0;">"${obs || 'Pagamento registrado'}"</p>
-                                <p>Pagamento realizado por: <strong>${pagamentos.find(p => p.id === id)?.usuario}</strong></p>
-                                <p>Data do pagamento: <strong>${new Date(pagamentos.find(p => p.id === id)?.data).toLocaleDateString('pt-BR')}</strong></p>
-                                <hr style="margin: 15px 0;">
-                                <p><strong>📌 DECLARAÇÃO:</strong></p>
-                                <p>Confirmo que recebi o valor acima descrito, referente à venda do terreno, dando quitação desta parcela.</p>
-                                <p style="margin-top: 15px;">Data da confirmação: ${new Date().toLocaleDateString('pt-BR')}</p>
-                                <p style="margin-top: 20px;"><strong>Victor Hugo Bailarin</strong><br>Vendedor</p>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-                            <button onclick="fecharModalTermo()" style="background: #666;">Cancelar</button>
-                            <button onclick="confirmarPagamento(${id})" style="background: #10b981;">✓ Confirmar Recebimento</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-        }
-        
-        function obterExtenso(valor) {
-            const partes = valor.toFixed(2).split('.');
-            return `${partes[0]} reais e ${partes[1]} centavos`;
-        }
-        
-        function fecharModalTermo() {
-            const modal = document.getElementById('modalTermo');
-            if (modal) modal.remove();
-        }
-        
-        function confirmarPagamento(id) {
-            const pagamento = pagamentos.find(p => p.id === id);
-            if (pagamento) {
-                pagamento.confirmado = true;
-                salvarDados();
-                fecharModalTermo();
-                adicionarObservacaoAuto(`✅ Pagamento de R$ ${pagamento.valor.toLocaleString('pt-BR')} CONFIRMADO por Victor Hugo (vendedor)`);
-                alert('✅ Pagamento confirmado com sucesso!');
-            }
-        }
-        
-        function adicionarPagamento(data, valor, obs) {
-            const valorNumerico = parseFloat(valor);
-            const novoId = pagamentos.length > 0 ? Math.max(...pagamentos.map(p => p.id)) + 1 : 1;
-            
-            pagamentos.push({
-                id: novoId,
-                data: data,
-                valor: valorNumerico,
-                obs: obs,
-                usuario: usuarioAtual,
-                confirmado: false  // Aguardando confirmação do vendedor
-            });
-            
+        const div = document.createElement('div');
+        div.className = `mes-card ${pago ? 'pago' : ''}`;
+        div.innerHTML = `
+            <div class="mes-ano">${meses[mesIdx]}/${anoAtual}</div>
+            <div class="valor">R$ ${VALOR_PARCELA.toLocaleString('pt-BR')}</div>
+            ${pago ? '<div class="tarja">PAGA ✓</div>' : ''}
+        `;
+        carrossel.appendChild(div);
+    }
+}
+
+function rolarCarrossel(direcao) {
+    const carrossel = document.getElementById('carrosselMeses');
+    if (carrossel) {
+        const scrollAmount = 300;
+        carrossel.scrollLeft += direcao * scrollAmount;
+    }
+}
+
+function adicionarPagamento(data, valor, obs) {
+    const valorNumerico = parseFloat(valor);
+    const novoId = pagamentos.length > 0 ? Math.max(...pagamentos.map(p => p.id)) + 1 : 1;
+    
+    pagamentos.push({
+        id: novoId,
+        data: data,
+        valor: valorNumerico,
+        obs: obs,
+        usuario: usuarioAtual,
+        confirmado: false
+    });
+    
+    salvarDados();
+    adicionarObservacaoAuto(`💰 Pagamento de R$ ${valorNumerico.toLocaleString('pt-BR')} registrado por ${usuarioAtual}. Aguardando confirmação.`);
+}
+
+function confirmarPagamento(id) {
+    const pagamento = pagamentos.find(p => p.id === id);
+    if (pagamento) {
+        pagamento.confirmado = true;
+        salvarDados();
+        adicionarObservacaoAuto(`✅ Pagamento de R$ ${pagamento.valor.toLocaleString('pt-BR')} CONFIRMADO por Victor Hugo`);
+        alert('✅ Pagamento confirmado com sucesso!');
+    }
+}
+
+function editarPagamento(id) {
+    if (!ehAdmin) return;
+    const pagamento = pagamentos.find(p => p.id === id);
+    if (!pagamento) return;
+    
+    const novoValor = prompt('Editar valor (R$):', pagamento.valor);
+    if (novoValor && !isNaN(novoValor)) {
+        pagamento.valor = parseFloat(novoValor);
+        pagamento.confirmado = false;
+        salvarDados();
+        adicionarObservacaoAuto(`✏️ Pagamento #${id} editado por ${usuarioAtual}. Aguardando nova confirmação.`);
+        alert('✅ Pagamento atualizado!');
+    }
+}
+
+function removerPagamento(id) {
+    if (confirm('Tem certeza que deseja remover este pagamento?')) {
+        pagamentos = pagamentos.filter(p => p.id !== id);
+        salvarDados();
+        adicionarObservacaoAuto(`🗑️ Pagamento removido por ${usuarioAtual}`);
+        alert('✅ Pagamento removido!');
+    }
+}
+
+function adicionarObservacao(texto, auto = false) {
+    const novoId = observacoes.length > 0 ? Math.max(...observacoes.map(o => o.id)) + 1 : 1;
+    observacoes.unshift({
+        id: novoId,
+        texto: texto,
+        data: new Date().toISOString().split('T')[0],
+        usuario: auto ? 'Sistema' : usuarioAtual
+    });
+    if (observacoes.length > 100) observacoes = observacoes.slice(0, 100);
+    salvarDados();
+}
+
+function adicionarObservacaoAuto(texto) {
+    adicionarObservacao(texto, true);
+}
+
+function atualizarObservacoes() {
+    const container = document.getElementById('listaObservacoes');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    observacoes.forEach(obs => {
+        const div = document.createElement('div');
+        div.style.cssText = 'background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #667eea;';
+        div.innerHTML = `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <strong>${obs.usuario}</strong>
+                <small style="color: #666;">${new Date(obs.data).toLocaleDateString('pt-BR')}</small>
+            </div>
+            <div>${obs.texto}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function exportarDados() {
+    const dados = { pagamentos, observacoes };
+    const dataStr = JSON.stringify(dados, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', `terreno_backup_${new Date().toISOString().split('T')[0]}.json`);
+    linkElement.click();
+}
+
+function importarDados() {
+    document.getElementById('importFile').click();
+}
+
+function processarImportacao(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const dados = JSON.parse(e.target.result);
+            if (dados.pagamentos) pagamentos = dados.pagamentos;
+            if (dados.observacoes) observacoes = dados.observacoes;
             salvarDados();
-            adicionarObservacaoAuto(`💰 Pagamento de R$ ${valorNumerico.toLocaleString('pt-BR')} registrado por ${usuarioAtual}. Aguardando confirmação do vendedor Victor Hugo.`);
+            alert('✅ Dados importados com sucesso!');
+        } catch (error) {
+            alert('❌ Erro ao importar arquivo');
+        }
+    };
+    reader.readAsText(file);
+}
+
+function resetarDados() {
+    if (ehAdmin && confirm('⚠️ ATENÇÃO! Isso irá apagar TODOS os dados. Tem certeza?')) {
+        localStorage.clear();
+        location.reload();
+    }
+}
+
+function fazerLogin() {
+    const usuario = document.getElementById('usuarioSelect').value;
+    const senha = document.getElementById('senhaInput').value;
+    
+    if (SENHAS[usuario] === senha) {
+        usuarioAtual = usuario;
+        ehAdmin = (usuario === 'Valtail');
+        ehVendedor = (usuario === 'Victor Hugo');
+        
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('appSection').style.display = 'block';
+        document.getElementById('usuarioLogado').innerHTML = `👋 Olá, ${usuario}!`;
+        
+        if (ehAdmin) {
+            document.getElementById('adminBadge').style.display = 'block';
+            document.getElementById('adminTab').style.display = 'block';
+        } else {
+            document.getElementById('adminBadge').style.display = 'none';
+            document.getElementById('adminTab').style.display = 'none';
         }
         
-        function editarPagamento(id) {
-            if (!ehAdmin) return;
-            
-            const pagamento = pagamentos.find(p => p.id === id);
-            if (!pagamento) return;
-            
-            const modalHtml = `
-                <div id="modalEdicao" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-                    <div style="background: white; padding: 30px; border-radius: 20px; max-width: 500px; width: 90%;">
-                        <h3 style="margin-bottom: 20px;">✏️ Editar Pagamento</h3>
-                        <div class="form-group">
-                            <label>📅 Data</label>
-                            <input type="date" id="editData" value="${pagamento.data}" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                        </div>
-                        <div class="form-group">
-                            <label>💰 Valor (R$)</label>
-                            <input type="number" id="editValor" step="0.01" value="${pagamento.valor}" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                        </div>
-                        <div class="form-group">
-                            <label>📝 Observação</label>
-                            <textarea id="editObs" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">${pagamento.obs || ''}</textarea>
-                        </div>
-                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                            <button onclick="fecharModalEdicao()" style="background: #666;">Cancelar</button>
-                            <button onclick="salvarEdicao(${id})" style="background: #10b981;">Salvar</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        if (ehVendedor) {
+            document.getElementById('vendedorBadge').style.display = 'block';
+        } else {
+            document.getElementById('vendedorBadge').style.display = 'none';
         }
         
-        function fecharModalEdicao() {
-            const modal = document.getElementById('modalEdicao');
-            if (modal) modal.remove();
-        }
-        
-        function salvarEdicao(id) {
-            const pagamento = pagamentos.find(p => p.id === id);
-            if (!pagamento) return;
-            
-            const novaData = document.getElementById('editData').value;
-            const novoValor = parseFloat(document.getElementById('editValor').value);
-            const novaObs = document.getElementById('editObs').value;
-            
-            if (!novaData || isNaN(novoValor)) {
-                alert('❌ Preencha todos os campos corretamente');
-                return;
-            }
-            
-            pagamento.data = novaData;
-            pagamento.valor = novoValor;
-            pagamento.obs = novaObs;
-            pagamento.confirmado = false; // Resetar confirmação após edição
-            
-            salvarDados();
-            fecharModalEdicao();
-            adicionarObservacaoAuto(`✏️ Pagamento #${id} editado por ${usuarioAtual}. Aguardando nova confirmação.`);
-            alert('✅ Pagamento atualizado com sucesso!');
-        }
-        
-        function removerPagamento(id) {
-            if (confirm('Tem certeza que deseja remover este pagamento?')) {
-                pagamentos = pagamentos.filter(p => p.id !== id);
-                salvarDados();
-                adicionarObservacaoAuto(`🗑️ Pagamento removido por ${usuarioAtual}`);
-                alert('✅ Pagamento removido!');
-            }
-        }
-        
-        function adicionarObservacao(texto, auto = false) {
-            const novoId = observacoes.length > 0 ? Math.max(...observacoes.map(o => o.id)) + 1 : 1;
-            observacoes.unshift({
-                id: novoId,
-                texto: texto,
-                data: new Date().toISOString().split('T')[0],
-                usuario: auto ? 'Sistema' : usuarioAtual
-            });
-            if (observacoes.length > 100) observacoes = observacoes.slice(0, 100);
-            salvarDados();
-            atualizarObservacoes();
-        }
-        
-        function adicionarObservacaoAuto(texto) {
-            adicionarObservacao(texto, true);
-        }
-        
-        function atualizarObservacoes() {
-            const container = document.getElementById('listaObservacoes');
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            observacoes.forEach(obs => {
-                const div = document.createElement('div');
-                div.style.cssText = 'background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #667eea;';
-                div.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <strong>${obs.usuario}</strong>
-                        <small style="color: #666;">${new Date(obs.data).toLocaleDateString('pt-BR')}</small>
-                    </div>
-                    <div>${obs.texto}</div>
-                `;
-                container.appendChild(div);
-            });
-        }
-        
-        function atualizarLinks() {
-            // Contrato - modo visualização
-            const displayView = document.getElementById('displayContratoView');
-            const displayAdmin = document.getElementById('displayContrato');
-            
-            if (links.contrato) {
-                const linkHtml = `<a href="${links.contrato}" target="_blank">📄 Visualizar Contrato</a>`;
-                if (displayView) displayView.innerHTML = linkHtml;
-                if (displayAdmin) {
-                    displayAdmin.innerHTML = linkHtml;
-                    document.getElementById('linkContrato').value = links.contrato;
-                }
-            } else {
-                if (displayView) displayView.innerHTML = '<span style="color: #666;">Nenhum contrato vinculado</span>';
-                if (displayAdmin) displayAdmin.innerHTML = '<span style="color: #666;">Nenhum contrato vinculado</span>';
-            }
-            
-            // Fotos - modo visualização
-            const galeriaView = document.getElementById('galeriaFotosView');
-            const galeriaAdmin = document.getElementById('galeriaFotos');
-            
-            const renderFotos = (container, isAdmin = false) => {
-                if (!container) return;
-                container.innerHTML = '';
-                links.fotos.forEach((foto, index) => {
-                    const fotoUrl = converterGoogleDriveLink(foto);
-                    const div = document.createElement('div');
-                    div.className = 'foto-item';
-                    div.innerHTML = `
-                        <img src="${fotoUrl}" onerror="this.src='https://via.placeholder.com/120?text=Erro+ao+carregar'" alt="Foto do terreno">
-                        ${isAdmin ? `<button onclick="removerFoto(${index})" style="position: absolute; top: -5px; right: -5px; background: #ef4444; padding: 5px 8px; border-radius: 50%; font-size: 10px; color: white;">✖</button>` : ''}
-                    `;
-                    div.onclick = () => abrirModal(fotoUrl);
-                    container.appendChild(div);
-                });
-            };
-            
-            renderFotos(galeriaView, false);
-            renderFotos(galeriaAdmin, true);
-        }
-        
-        function salvarLinkContrato() {
-            if (!ehAdmin) return;
-            const link = document.getElementById('linkContrato').value;
-            links.contrato = link;
-            salvarDados();
-            adicionarObservacaoAuto(`📄 Link do contrato atualizado por ${usuarioAtual}`);
-            alert('Link do contrato salvo!');
-        }
-        
-        function adicionarFoto() {
-            if (!ehAdmin) return;
-            const link = document.getElementById('linkFoto').value;
-            if (link) {
-                links.fotos.push(link);
-                salvarDados();
-                document.getElementById('linkFoto').value = '';
-                adicionarObservacaoAuto(`📸 Nova foto adicionada por ${usuarioAtual}`);
-                alert('Foto adicionada!');
-            } else {
-                alert('Digite uma URL válida da foto');
-            }
-        }
-        
-        function removerFoto(index) {
-            if (ehAdmin && confirm('Remover esta foto?')) {
-                links.fotos.splice(index, 1);
-                salvarDados();
-                adicionarObservacaoAuto(`📸 Foto removida por ${usuarioAtual}`);
-            }
-        }
-        
-        function abrirModal(imgSrc) {
-            const modal = document.getElementById('modal');
-            const modalImg = document.getElementById('modalImg');
-            if (modal && modalImg) {
-                modal.style.display = 'block';
-                modalImg.src = imgSrc;
-            }
-        }
-        
-        function fecharModal() {
-            const modal = document.getElementById('modal');
-            if (modal) modal.style.display = 'none';
-        }
-        
-        function exportarDados() {
-            const dados = { pagamentos, observacoes, links };
-            const dataStr = JSON.stringify(dados, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', `terreno_backup_${new Date().toISOString().split('T')[0]}.json`);
-            linkElement.click();
-        }
-        
-        function importarDados() {
-            document.getElementById('importFile').click();
-        }
-        
-        function processarImportacao(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const dados = JSON.parse(e.target.result);
-                    if (dados.pagamentos) pagamentos = dados.pagamentos;
-                    if (dados.observacoes) observacoes = dados.observacoes;
-                    if (dados.links) links = dados.links;
-                    salvarDados();
-                    alert('✅ Dados importados com sucesso!');
-                } catch (error) {
-                    alert('❌ Erro ao importar arquivo');
-                }
-            };
-            reader.readAsText(file);
-        }
-        
-        function resetarDados() {
-            if (ehAdmin && confirm('⚠️ ATENÇÃO! Isso irá apagar TODOS os dados. Tem certeza?')) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-        
-        function fazerLogin() {
-            const usuario = document.getElementById('usuarioSelect').value;
-            const senha = document.getElementById('senhaInput').value;
-            
-            if (SENHAS[usuario] === senha) {
-                usuarioAtual = usuario;
-                ehAdmin = (usuario === 'Valtail');
-                ehVendedor = (usuario === 'Victor Hugo');
-                
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('appSection').style.display = 'block';
-                document.getElementById('usuarioLogado').innerHTML = `👋 Olá, ${usuario}!`;
-                
-                if (ehAdmin) {
-                    document.getElementById('adminBadge').style.display = 'block';
-                    document.getElementById('adminLinksSection').style.display = 'grid';
-                    document.getElementById('viewLinksSection').style.display = 'none';
-                    document.getElementById('adminTab').style.display = 'block';
-                } else {
-                    document.getElementById('adminBadge').style.display = 'none';
-                    document.getElementById('adminLinksSection').style.display = 'none';
-                    document.getElementById('viewLinksSection').style.display = 'grid';
-                    document.getElementById('adminTab').style.display = 'none';
-                }
-                
-                if (ehVendedor) {
-                    document.getElementById('vendedorBadge').style.display = 'block';
-                } else {
-                    document.getElementById('vendedorBadge').style.display = 'none';
-                }
-                
-                carregarDados();
-                atualizarDashboard();
-                atualizarObservacoes();
-                atualizarLinks();
-            } else {
-                alert('❌ Senha incorreta! Tente novamente.');
-            }
-        }
-        function deslogar() {
+        carregarDados();
+        atualizarDashboard();
+        atualizarObservacoes();
+    } else {
+        alert('❌ Senha incorreta! Tente novamente.');
+    }
+}
+
+function deslogar() {
     if (confirm('Tem certeza que deseja sair?')) {
-        // Limpa dados da sessão se necessário
         usuarioAtual = null;
         ehAdmin = false;
         ehVendedor = false;
-        
-        // Esconde o app e mostra o login
         document.getElementById('appSection').style.display = 'none';
         document.getElementById('loginSection').style.display = 'block';
-        
-        // Limpa o campo de senha
         document.getElementById('senhaInput').value = '';
-        
-        // Opcional: recarregar a página para limpar tudo
-        // location.reload();
     }
 }
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            const targetTab = document.getElementById(`tab-${tabName}`);
-            if (targetTab) targetTab.classList.add('active');
-            if (event && event.target) event.target.classList.add('active');
-        }
-        
-        // Event Listeners
-        const formPagamento = document.getElementById('formPagamento');
-        if (formPagamento) {
-            formPagamento.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const data = document.getElementById('dataPagamento').value;
-                let valor = document.getElementById('valorPagamento').value;
-                const obs = document.getElementById('obsPagamento').value;
-                
-                if (!data || !valor) {
-                    alert('❌ Preencha todos os campos obrigatórios');
-                    return;
-                }
-                
-                valor = parseFloat(valor);
-                if (isNaN(valor) || valor <= 0) {
-                    alert('❌ Digite um valor válido');
-                    return;
-                }
-                
-                adicionarPagamento(data, valor, obs);
-                document.getElementById('formPagamento').reset();
-                if (typeof switchTab === 'function') switchTab('pagamentos');
-                alert('✅ Pagamento registrado! Aguardando confirmação do vendedor Victor Hugo.');
-            });
-        }
-        
-        const formObservacao = document.getElementById('formObservacao');
-        if (formObservacao) {
-            formObservacao.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const texto = document.getElementById('novaObservacao').value;
-                if (!texto) {
-                    alert('❌ Digite uma observação');
-                    return;
-                }
-                adicionarObservacao(texto);
-                document.getElementById('novaObservacao').value = '';
-                alert('✅ Observação adicionada!');
-            });
-        }
-        
-        window.onclick = function(event) {
-            const modal = document.getElementById('modal');
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
-        }
-    </script>
+
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    const targetTab = document.getElementById(`tab-${tabName}`);
+    if (targetTab) targetTab.classList.add('active');
+    if (event && event.target) event.target.classList.add('active');
+}
+
+// Event Listeners
+document.getElementById('formPagamento').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = document.getElementById('dataPagamento').value;
+    let valor = document.getElementById('valorPagamento').value;
+    const obs = document.getElementById('obsPagamento').value;
+    
+    if (!data || !valor) {
+        alert('❌ Preencha todos os campos obrigatórios');
+        return;
+    }
+    
+    valor = parseFloat(valor);
+    if (isNaN(valor) || valor <= 0) {
+        alert('❌ Digite um valor válido');
+        return;
+    }
+    
+    adicionarPagamento(data, valor, obs);
+    document.getElementById('formPagamento').reset();
+    switchTab('pagamentos');
+    alert('✅ Pagamento registrado! Aguardando confirmação do vendedor Victor Hugo.');
+});
+
+document.getElementById('formObservacao').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const texto = document.getElementById('novaObservacao').value;
+    if (!texto) {
+        alert('❌ Digite uma observação');
+        return;
+    }
+    adicionarObservacao(texto);
+    document.getElementById('novaObservacao').value = '';
+    alert('✅ Observação adicionada!');
+});
+</script>
 </body>
 </html>
