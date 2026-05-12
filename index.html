@@ -1,535 +1,1674 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão do Terreno</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header { text-align: center; padding: 30px; background: white; border-radius: 20px; margin-bottom: 30px; }
-        h1 { font-size: 48px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .login-container { background: white; border-radius: 20px; padding: 40px; max-width: 400px; margin: 50px auto; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 25px; border-radius: 15px; }
-        .stat-value { font-size: 32px; font-weight: bold; }
-        .progress-bar { background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-top: 15px; }
-        .progress-fill { background: linear-gradient(90deg, #667eea, #764ba2); height: 30px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { background: rgba(255,255,255,0.9); border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold; }
-        .tab-btn.active { background: white; color: #667eea; }
-        .tab-content { display: none; background: white; border-radius: 20px; padding: 30px; }
-        .tab-content.active { display: block; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
-        button { background: linear-gradient(135deg, #667eea, #764ba2); color: black; font-weight: bold; border: none; padding: 12px 30px; border-radius: 8px; cursor: pointer; }
-        
-        .carrossel-container { position: relative; margin: 20px 0; }
-        .carrossel { display: flex; overflow-x: auto; scroll-behavior: smooth; gap: 15px; padding: 20px 10px; scrollbar-width: thin; }
-        .carrossel::-webkit-scrollbar { height: 8px; }
-        .carrossel::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-        .carrossel::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
-        .carrossel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(102,126,234,0.8); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; z-index: 10; }
-        .carrossel-btn:hover { background: #667eea; }
-        .btn-left { left: -20px; }
-        .btn-right { right: -20px; }
-        
-        .mes-card { min-width: 140px; background: #f8f9fa; border-radius: 15px; padding: 20px; text-align: center; position: relative; }
-        .mes-card.pago { background: linear-gradient(135deg, #10b981, #059669); color: white; }
-        .mes-card .tarja { position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 4px 8px; border-radius: 20px; font-size: 10px; font-weight: bold; }
-        
-        .badge-confirmado { background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; display: inline-block; }
-        .badge-pendente { background: #f59e0b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; display: inline-block; }
-        .btn-editar, .btn-excluir, .btn-confirmar { padding: 5px 10px; font-size: 12px; margin: 2px; border: none; border-radius: 5px; cursor: pointer; }
-        .btn-editar { background: #3b82f6; color: white; }
-        .btn-excluir { background: #ef4444; color: white; }
-        .btn-confirmar { background: #10b981; color: white; }
-        
-        @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } .tabs { flex-direction: column; } .carrossel-btn { width: 30px; height: 30px; font-size: 16px; } .btn-left { left: -10px; } .btn-right { right: -10px; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compra do Terreno</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Segoe UI',sans-serif;
+    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    min-height:100vh;
+    padding:20px;
+}
+
+.container{
+    max-width:1400px;
+    margin:0 auto;
+}
+
+.header{
+    text-align:center;
+    padding:30px;
+    background:white;
+    border-radius:20px;
+    margin-bottom:30px;
+}
+
+.titulo-sistema{
+    font-size:34px;
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    letter-spacing:1px;
+}
+
+.login-container{
+    background:white;
+    border-radius:20px;
+    padding:40px;
+    max-width:400px;
+    margin:50px auto;
+}
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.stat-card{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+}
+
+.stat-value{
+    font-size:32px;
+    font-weight:bold;
+}
+
+.progress-bar{
+    background:#e0e0e0;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:15px;
+}
+
+.progress-fill{
+    background:linear-gradient(90deg,#667eea,#764ba2);
+    height:30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-weight:bold;
+}
+
+.tabs{
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+}
+
+.tab-btn{
+    background:rgba(255,255,255,0.9);
+    border:none;
+    padding:12px 25px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.tab-btn.active{
+    background:white;
+    color:#667eea;
+}
+
+.tab-content{
+    display:none;
+    background:white;
+    border-radius:20px;
+    padding:30px;
+}
+
+.tab-content.active{
+    display:block;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:12px;
+    text-align:left;
+    border-bottom:1px solid #eee;
+}
+
+.form-group{
+    margin-bottom:20px;
+}
+
+label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
+}
+
+input,select,textarea{
+    width:100%;
+    padding:10px;
+    border:1px solid #ddd;
+    border-radius:8px;
+}
+
+button{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    color:black;
+    font-weight:bold;
+    border:none;
+    padding:12px 30px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.carrossel-container{
+    position:relative;
+    margin:20px 0;
+}
+
+.carrossel{
+    display:flex;
+    overflow-x:auto;
+    scroll-behavior:smooth;
+    gap:15px;
+    padding:20px 10px;
+    scrollbar-width:thin;
+}
+
+.carrossel::-webkit-scrollbar{
+    height:8px;
+}
+
+.carrossel::-webkit-scrollbar-track{
+    background:#f1f1f1;
+    border-radius:10px;
+}
+
+.carrossel::-webkit-scrollbar-thumb{
+    background:#667eea;
+    border-radius:10px;
+}
+
+.mes-card{
+    min-width:110px;
+    min-height:150px;
+    background:#f8f9fa;
+    border-radius:15px;
+    padding:18px 12px;
+    text-align:center;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:10px;
+}
+
+.mes-card.pago{
+    background:linear-gradient(135deg,#10b981,#059669);
+    color:white;
+}
+
+.mes-card .mes-ano{
+    font-size:14px;
+    font-weight:bold;
+}
+
+.mes-card .valor{
+    font-size:12px;
+    font-weight:600;
+}
+
+.mes-card .tarja{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:#ef4444;
+    color:white;
+    padding:4px 8px;
+    border-radius:20px;
+    font-size:10px;
+    font-weight:bold;
+}
+
+.badge-confirmado{
+    background:#10b981;
+    color:white;
+    padding:4px 12px;
+    border-radius:20px;
+    font-size:12px;
+    display:inline-block;
+}
+
+.badge-pendente{
+    background:#f59e0b;
+    color:white;
+    padding:4px 12px;
+    border-radius:20px;
+    font-size:12px;
+    display:inline-block;
+}
+
+.btn-editar,
+.btn-excluir,
+.btn-confirmar{
+    padding:5px 10px;
+    font-size:12px;
+    margin:2px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+.btn-editar{
+    background:#3b82f6;
+    color:white;
+}
+
+.btn-excluir{
+    background:#ef4444;
+    color:white;
+}
+
+.btn-confirmar{
+    background:#10b981;
+    color:white;
+}
+
+.docs-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:15px;
+    margin-top:20px;
+}
+
+.doc-item{
+    background:#f8f9fa;
+    padding:15px;
+    border-radius:10px;
+    border:1px solid #ddd;
+    text-align:center;
+    text-decoration:none;
+    color:#333;
+    transition:0.3s;
+}
+
+.doc-item:hover{
+    background:#eee;
+}
+
+.recibo-box{
+    background:#ffffff;
+    border:2px solid #10b981;
+    border-radius:15px;
+    padding:25px;
+    margin-top:20px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.08);
+}
+
+.recibo-topo{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.recibo-topo h2{
+    color:#10b981;
+    margin-bottom:10px;
+}
+
+.recibo-info{
+    line-height:1.9;
+    font-size:16px;
+}
+
+.recibo-confirmacao{
+    margin-top:20px;
+    padding:15px;
+    background:#f0fff7;
+    border-left:5px solid #10b981;
+    border-radius:10px;
+}
+
+.btn-imprimir{
+    margin-top:20px;
+    background:#10b981;
+    color:white;
+}
+
+@media (max-width:768px){
+
+    .stats-grid{
+        grid-template-columns:1fr;
+    }
+
+    .tabs{
+        flex-direction:column;
+    }
+
+    .titulo-sistema{
+        font-size:26px;
+    }
+}
+
+</style>
 </head>
+
 <body>
+
 <div class="container">
-    <!-- Login -->
-    <div id="loginSection" class="login-container">
-        <h2 style="text-align: center;">🔐 Acesso ao Sistema</h2>
-        <div class="form-group">
-            <label>👤 Usuário</label>
-            <select id="usuarioSelect">
-                <option value="Valtail">Valtail Menegassi (Admin)</option>
-                <option value="Victor Hugo">Victor Hugo (Vendedor)</option>
-                <option value="Lázaro">Lázaro (Comprador)</option>
-                <option value="Débora">Débora</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>🔑 Senha</label>
-            <input type="password" id="senhaInput" placeholder="Digite sua senha">
-        </div>
-        <button onclick="fazerLogin()" style="width: 100%;">Entrar</button>
-    </div>
 
-    <!-- App -->
-    <div id="appSection" style="display: none;">
-        <div class="header">
-            <h1>🏠 GESTÃO DO TERRENO</h1>
-            <div id="usuarioLogado" style="margin-top: 10px;"></div>
-            <div id="adminBadge" style="display: none; color: #ef4444; font-weight: bold;">👑 Modo Administrador</div>
-            <div id="vendedorBadge" style="display: none; color: #10b981; font-weight: bold;">💰 Vendedor</div>
-            <button onclick="deslogar()" style="background: #ef4444; color: white; margin-top: 15px;">🚪 Sair</button>
-        </div>
+<div id="loginSection" class="login-container">
 
-        <!-- Stats -->
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-title">💰 Total Pago</div><div class="stat-value" id="totalPago">R$ 0,00</div></div>
-            <div class="stat-card"><div class="stat-title">⏳ Saldo Devedor</div><div class="stat-value" id="saldoDevedor">R$ 0,00</div></div>
-            <div class="stat-card"><div class="stat-title">📊 Progresso</div><div class="progress-bar"><div class="progress-fill" id="progressoFill">0%</div></div></div>
-            <div class="stat-card"><div class="stat-title">✅ Parcelas Pagas</div><div class="stat-value" id="parcelasPagas">0</div></div>
-        </div>
+<h2 style="text-align:center;">🔐 Acesso ao Sistema</h2>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('pagamentos')">💰 Pagamentos</button>
-            <button class="tab-btn" onclick="switchTab('adicionar')">➕ Adicionar</button>
-            <button class="tab-btn" onclick="switchTab('cronograma')">📅 Cronograma</button>
-            <button class="tab-btn" onclick="switchTab('observacoes')">📝 Observações</button>
-            <div id="adminTab" style="display: none;"><button class="tab-btn" onclick="switchTab('admin')">⚙️ Admin</button></div>
-        </div>
+<div class="form-group">
+<label>👤 Usuário</label>
 
-        <!-- Tab Pagamentos -->
-        <div id="tab-pagamentos" class="tab-content active">
-            <h3>📋 Histórico de Pagamentos</h3>
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead><tr><th>Data</th><th>Valor</th><th>Descrição</th><th>Usuário</th><th>Status</th><th>Ações</th></tr></thead>
-                    <tbody id="listaPagamentos"></tbody>
-                </table>
-            </div>
-        </div>
+<select id="usuarioSelect">
+<option value="Valtail">Valtail Menegassi (Admin)</option>
+<option value="Victor Hugo">Victor Hugo (Vendedor)</option>
+<option value="Lázaro">Lázaro (Comprador)</option>
+<option value="Débora">Débora</option>
+</select>
+</div>
 
-        <!-- Tab Adicionar -->
-        <div id="tab-adicionar" class="tab-content">
-            <h3>➕ Novo Pagamento</h3>
-            <form id="formPagamento">
-                <div class="form-group"><label>📅 Data</label><input type="date" id="dataPagamento" required></div>
-                <div class="form-group"><label>💰 Valor (R$)</label><input type="number" id="valorPagamento" step="0.01" required placeholder="Ex: 3000.00"></div>
-                <div class="form-group"><label>📝 Descrição</label><textarea id="obsPagamento" rows="3"></textarea></div>
-                <button type="submit">Registrar Pagamento</button>
-            </form>
-        </div>
+<div class="form-group">
 
-        <!-- Tab Cronograma -->
-        <div id="tab-cronograma" class="tab-content">
-            <h3>📅 Cronograma de Pagamentos (Abril/2026 - Março/2028)</h3>
-            <div class="carrossel-container">
-                <button class="carrossel-btn btn-left" onclick="rolarCarrossel(-1)">◀</button>
-                <div class="carrossel" id="carrosselMeses"></div>
-                <button class="carrossel-btn btn-right" onclick="rolarCarrossel(1)">▶</button>
-            </div>
-            <div style="margin-top: 20px; background: #f0f0f0; padding: 15px; border-radius: 8px;">
-                <p><strong>📌 Legenda:</strong></p>
-                <p>🟢 <span style="color: #10b981;">Verde com tarja "PAGA"</span> = Parcela quitada</p>
-                <p>⚪ <span style="color: #666;">Branco</span> = Parcela pendente</p>
-                <p>💡 <strong>Total do terreno: R$ 100.000</strong> | Parcelas de R$ 3.000</p>
-                <hr>
-                <p>💰 <strong>Valor já pago:</strong> <span style="color: #10b981; font-size: 18px;" id="valorPagoLegenda">R$ 0,00</span></p>
-                <p>📊 <strong>Valor restante:</strong> <span style="color: #ef4444; font-size: 18px;" id="valorRestanteLegenda">R$ 0,00</span></p>
-            </div>
-        </div>
+<label>🔑 Senha</label>
 
-        <!-- Tab Observações -->
-        <div id="tab-observacoes" class="tab-content">
-            <h3>💬 Observações do Grupo</h3>
-            <div id="listaObservacoes" style="margin-bottom: 20px; max-height: 400px; overflow-y: auto;"></div>
-            <form id="formObservacao">
-                <div class="form-group"><textarea id="novaObservacao" rows="3" placeholder="Digite sua observação aqui..."></textarea></div>
-                <button type="submit">Adicionar Observação</button>
-            </form>
-        </div>
+<div style="position:relative;">
 
-        <!-- Tab Admin -->
-        <div id="tab-admin" class="tab-content">
-            <h3>⚙️ Administração</h3>
-            <button onclick="exportarDados()">📥 Exportar Dados</button>
-            <button onclick="importarDados()">📤 Importar Dados</button>
-            <button onclick="resetarDados()" style="background: #ef4444;">⚠️ Resetar Tudo</button>
-            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="processarImportacao(event)">
-        </div>
-    </div>
+<input
+type="password"
+id="senhaInput"
+placeholder="Digite sua senha"
+style="padding-right:45px;"
+>
+
+<span
+onclick="toggleSenha()"
+style="
+position:absolute;
+right:15px;
+top:50%;
+transform:translateY(-50%);
+cursor:pointer;
+font-size:18px;
+user-select:none;
+">
+👁️
+</span>
+
+</div>
+
+</div>
+
+<button onclick="fazerLogin()" style="width:100%;">
+Entrar
+</button>
+
+</div>
+
+<div id="appSection" style="display:none;">
+
+<div class="header">
+
+<h1 class="titulo-sistema">
+🏠 COMPRA DO TERRENO
+</h1>
+
+<div id="usuarioLogado" style="margin-top:10px;"></div>
+
+<div id="adminBadge" style="display:none;color:#ef4444;font-weight:bold;">
+👑 Modo Administrador
+</div>
+
+<div id="vendedorBadge" style="display:none;color:#10b981;font-weight:bold;">
+💰 Vendedor
+</div>
+
+<button onclick="deslogar()"
+style="background:#ef4444;color:white;margin-top:15px;">
+🚪 Sair
+</button>
+
+</div>
+
+<div class="stats-grid">
+
+<div class="stat-card">
+<div class="stat-title">💰 Total Pago</div>
+<div class="stat-value" id="totalPago">R$ 0,00</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-title">⏳ Saldo Devedor</div>
+<div class="stat-value" id="saldoDevedor">R$ 0,00</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-title">📊 Progresso</div>
+
+<div class="progress-bar">
+<div class="progress-fill" id="progressoFill">0%</div>
+</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-title">✅ Parcelas Pagas</div>
+<div class="stat-value" id="parcelasPagas">0</div>
+</div>
+
+</div>
+
+
+
+<!-- PAGAMENTOS -->
+
+<div id="tab-pagamentos" class="tab-content active">
+
+<h3>📋 Histórico de Pagamentos</h3>
+
+<div style="overflow-x:auto;">
+
+<table>
+
+<thead>
+<tr>
+<th>Data</th>
+<th>Valor</th>
+<th>Descrição</th>
+<th>Usuário</th>
+<th>Status</th>
+<th>Ações</th>
+</tr>
+</thead>
+
+<tbody id="listaPagamentos"></tbody>
+
+</table>
+
+</div>
+</div>
+
+<!-- ADICIONAR -->
+
+<div id="tab-adicionar" class="tab-content">
+
+<h3>➕ Novo Pagamento</h3>
+
+<div id="adminOnlyMsg"
+style="color:#ef4444;font-weight:bold;margin-bottom:10px;display:none;">
+⚠️ Apenas administradores podem registrar pagamentos.
+</div>
+
+<form id="formPagamento">
+
+<div class="form-group">
+<label>📅 Data</label>
+<input type="date" id="dataPagamento" required>
+</div>
+
+<div class="form-group">
+<label>💰 Valor (R$)</label>
+
+<input type="number"
+id="valorPagamento"
+step="0.01"
+required
+placeholder="Ex: 3000.00">
+</div>
+
+<div class="form-group">
+<label>📝 Descrição</label>
+<textarea id="obsPagamento" rows="3"></textarea>
+</div>
+
+<button type="submit"
+id="btnSalvarPagamento">
+Registrar Pagamento
+</button>
+
+</form>
+</div>
+
+<!-- CRONOGRAMA -->
+
+<div id="tab-cronograma" class="tab-content">
+
+<h3>📅 Cronograma de Pagamentos (Abril/26 - Março/28)</h3>
+
+<div class="carrossel-container">
+
+<div class="carrossel" id="carrosselMeses"></div>
+
+</div>
+
+<div style="margin-top:40px;background:#f0f0f0;padding:20px;border-radius:8px;margin-bottom:30px;">
+
+<div style="
+background:#fff;
+padding:12px;
+border-radius:8px;
+border:1px solid #eee;
+font-size:13px;
+line-height:1.5;
+">
+
+    <p style="margin-bottom:8px;">
+        💡
+        <strong>Total do terreno: R$ 100.000</strong>
+        | Parcelas de R$ 3.000
+    </p>
+
+    <hr style="margin:8px 0;">
+
+    <p style="margin-bottom:6px;">
+        💰
+        <strong>Valor já pago:</strong>
+
+        <span
+        style="color:#10b981;font-size:14px;font-weight:bold;"
+        id="valorPagoLegenda">
+            R$ 0,00
+        </span>
+    </p>
+
+    <p>
+        📊
+        <strong>Valor restante:</strong>
+
+        <span
+        style="color:#ef4444;font-size:14px;font-weight:bold;"
+        id="valorRestanteLegenda">
+            R$ 0,00
+        </span>
+    </p>
+
+</div>
+<!-- DOCUMENTOS -->
+
+<div id="tab-documentos" class="tab-content">
+
+<h3>📁 Documentos e Fotos do Admin</h3>
+
+<p style="margin-bottom:15px;">
+Abaixo estão os arquivos e fotos compartilhados pela administração.
+</p>
+
+<div class="docs-grid" id="listaDocs">
+
+<a href="#" class="doc-item">
+📄 Contrato_Social.pdf
+</a>
+
+<a href="#" class="doc-item">
+🖼️ Foto_Terreno_LoteA.jpg
+</a>
+
+<a href="#" class="doc-item">
+🖼️ Planta_Baixa.png
+</a>
+
+</div>
+
+</div>
+
+<!-- OBSERVAÇÕES -->
+
+<div id="tab-observacoes" class="tab-content">
+
+<h3>💬 Observações do Grupo</h3>
+
+<div id="listaObservacoes"
+style="margin-bottom:20px;max-height:400px;overflow-y:auto;">
+</div>
+
+<form id="formObservacao">
+
+<div class="form-group">
+
+<textarea id="novaObservacao"
+rows="3"
+placeholder="Digite sua observação aqui...">
+</textarea>
+
+</div>
+
+<button type="submit">
+Adicionar Observação
+</button>
+
+</form>
+
+</div>
+
+<!-- RECIBOS -->
+
+<div id="tab-recibos" class="tab-content">
+
+<h3>🧾 Recibos de Pagamentos Confirmados</h3>
+
+<div id="listaRecibos"></div>
+
+</div>
+
+<!-- ADMIN -->
+
+<div id="tab-admin" class="tab-content">
+
+<h3>⚙️ Administração</h3>
+
+<button onclick="exportarDados()">
+📥 Exportar Dados
+</button>
+
+<button onclick="importarDados()">
+📤 Importar Dados
+</button>
+
+<button onclick="resetarDados()"
+style="background:#ef4444;">
+⚠️ Resetar Tudo
+</button>
+
+<input type="file"
+id="importFile"
+accept=".json"
+style="display:none;"
+onchange="processarImportacao(event)">
+
+</div>
+
+</div>
 </div>
 
 <script>
-// Configurações
+
 const META_TOTAL = 100000;
 const VALOR_PARCELA = 3000;
 
 const SENHAS = {
-    "Valtail": "valtail0549",
-    "Victor Hugo": "victor100",
-    "Lázaro": "lazaro1234",
-    "Débora": "debora0549"
+"Valtail":"valtail0549",
+"Victor Hugo":"victor100",
+"Lázaro":"lazaro1234",
+"Débora":"debora0549"
 };
 
 let pagamentos = [];
 let observacoes = [];
+let recibos = [];
+
 let usuarioAtual = null;
 let ehAdmin = false;
 let ehVendedor = false;
 
-// Carregar dados
-function carregarDados() {
-    const saved = localStorage.getItem('terreno_pagamentos');
-    if (saved) {
-        pagamentos = JSON.parse(saved);
-    } else {
-        pagamentos = [
-            { id: 1, data: '2026-04-06', valor: 5000, obs: 'Itaú para Banco do Brasil - Lázaro', usuario: 'Lázaro', confirmado: false },
-            { id: 2, data: '2026-04-06', valor: 5000, obs: 'Itaú para Banco do Brasil - Lázaro', usuario: 'Lázaro', confirmado: false },
-            { id: 3, data: '2026-04-06', valor: 3620, obs: 'Rosa comprou celular para Victor', usuario: 'Victor Hugo', confirmado: false }
-        ];
-    }
-    
-    const savedObs = localStorage.getItem('terreno_observacoes');
-    if (savedObs) {
-        observacoes = JSON.parse(savedObs);
-    } else {
-        observacoes = [
-            { id: 1, texto: '🎉 Sistema iniciado! Aguardando confirmação do vendedor Victor Hugo.', data: new Date().toISOString().split('T')[0], usuario: 'Sistema' }
-        ];
-    }
+function gerarRecibosAntigos(){
+
+const pagamentosConfirmados =
+pagamentos.filter(p => p.confirmado === true);
+
+pagamentosConfirmados.forEach(pagamento => {
+
+const reciboExistente = recibos.find(r =>
+r.valor === pagamento.valor &&
+r.observacao === pagamento.obs
+);
+
+if(!reciboExistente){
+
+recibos.push({
+
+id: Date.now() + Math.random(),
+
+valor: pagamento.valor,
+
+data: new Date(pagamento.data)
+.toLocaleDateString('pt-BR'),
+
+hora: '12:00:00',
+
+vendedor: 'Victor Hugo',
+
+compradores: 'Valtail e Débora Melo',
+
+observacao: pagamento.obs
+});
+}
+});
 }
 
-function salvarDados() {
-    localStorage.setItem('terreno_pagamentos', JSON.stringify(pagamentos));
-    localStorage.setItem('terreno_observacoes', JSON.stringify(observacoes));
-    atualizarDashboard();
-    atualizarObservacoes();
+function carregarDados(){
+
+const saved = localStorage.getItem('terreno_pagamentos');
+
+if(saved){
+
+pagamentos = JSON.parse(saved);
+
+}else{
+
+pagamentos = [
+
+{
+id:1,
+data:'2026-04-06',
+valor:5000,
+obs:'Itaú para Banco do Brasil - Lázaro',
+usuario:'Lázaro',
+confirmado:true
+},
+
+{
+id:2,
+data:'2026-04-06',
+valor:3620,
+obs:'Rosa comprou celular para Victor',
+usuario:'Victor Hugo',
+confirmado:true
+}
+];
 }
 
-function calcularTotalPago() {
-    return pagamentos.filter(p => p.confirmado === true).reduce((total, p) => total + p.valor, 0);
+const savedObs = localStorage.getItem('terreno_observacoes');
+
+if(savedObs){
+
+observacoes = JSON.parse(savedObs);
+
+}else{
+
+observacoes = [
+
+{
+id:1,
+texto:'🎉 Sistema iniciado!',
+data:new Date().toISOString().split('T')[0],
+usuario:'Sistema'
+}
+];
 }
 
-function calcularParcelasPagas() {
-    return Math.floor(calcularTotalPago() / VALOR_PARCELA);
+const savedRecibos =
+localStorage.getItem('terreno_recibos');
+
+if(savedRecibos){
+recibos = JSON.parse(savedRecibos);
 }
 
-function atualizarDashboard() {
-    const totalPago = calcularTotalPago();
-    const saldoDevedor = META_TOTAL - totalPago;
-    const percentual = (totalPago / META_TOTAL) * 100;
-    const parcelasPagas = calcularParcelasPagas();
-    
-    document.getElementById('totalPago').innerHTML = `R$ ${totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-    document.getElementById('saldoDevedor').innerHTML = `R$ ${saldoDevedor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-    document.getElementById('parcelasPagas').innerHTML = parcelasPagas;
-    
-    const progressFill = document.getElementById('progressoFill');
-    progressFill.style.width = `${percentual}%`;
-    progressFill.innerHTML = `${percentual.toFixed(1)}%`;
-    
-    // Atualiza legenda
-    const valorPagoElem = document.getElementById('valorPagoLegenda');
-    const valorRestanteElem = document.getElementById('valorRestanteLegenda');
-    if (valorPagoElem) valorPagoElem.innerHTML = `R$ ${totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-    if (valorRestanteElem) valorRestanteElem.innerHTML = `R$ ${saldoDevedor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-    
-    atualizarTabelaPagamentos();
-    atualizarCronograma();
+gerarRecibosAntigos();
 }
 
-function atualizarTabelaPagamentos() {
-    const tbody = document.getElementById('listaPagamentos');
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    pagamentos.sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(p => {
-        const row = tbody.insertRow();
-        const status = p.confirmado ? 
-            '<span class="badge-confirmado">✓ Confirmado</span>' : 
-            '<span class="badge-pendente">⏳ Aguardando confirmação</span>';
-        
-        let botoes = '';
-        if (ehAdmin) {
-            botoes = `<button class="btn-editar" onclick="editarPagamento(${p.id})">✏️</button>
-                      <button class="btn-excluir" onclick="removerPagamento(${p.id})">❌ Excluir</button>`;
-        } else if (ehVendedor && !p.confirmado) {
-            botoes = `<button class="btn-confirmar" onclick="confirmarPagamento(${p.id})">✓ Confirmar Recebimento</button>`;
-        } else if (!ehAdmin && !ehVendedor && !p.confirmado) {
-            botoes = '<span style="color: #f59e0b;">Aguardando vendedor</span>';
-        } else if (p.confirmado) {
-            botoes = '<span style="color: #10b981;">✓ Confirmado</span>';
-        }
-        
-        row.innerHTML = `
-            <td>${new Date(p.data).toLocaleDateString('pt-BR')}</td>
-            <td>R$ ${p.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-            <td>${p.obs || '-'}</td>
-            <td>${p.usuario}</td>
-            <td>${status}</td>
-            <td>${botoes}</td>
-        `;
-    });
+function salvarDados(){
+
+localStorage.setItem(
+'terreno_pagamentos',
+JSON.stringify(pagamentos)
+);
+
+localStorage.setItem(
+'terreno_observacoes',
+JSON.stringify(observacoes)
+);
+
+localStorage.setItem(
+'terreno_recibos',
+JSON.stringify(recibos)
+);
+
+atualizarDashboard();
+atualizarObservacoes();
+atualizarRecibos();
 }
 
-function atualizarCronograma() {
-    const totalPago = calcularTotalPago();
-    const parcelasPagas = Math.floor(totalPago / VALOR_PARCELA);
-    const carrossel = document.getElementById('carrosselMeses');
-    if (!carrossel) return;
-    
-    carrossel.innerHTML = '';
-    
-    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    let ano = 2026;
-    let mesInicio = 3; // 0=Jan, 1=Fev, 2=Mar, 3=Abril ✅
-    
-    // 24 parcelas (Abril/2026 até Março/2028)
-    for (let i = 0; i < 24; i++) {
-        let mesIdx = (mesInicio + i) % 12;
-        let anoAtual = ano + Math.floor((mesInicio + i) / 12);
-        let pago = i < parcelasPagas;
-        
-        const div = document.createElement('div');
-        div.className = `mes-card ${pago ? 'pago' : ''}`;
-        div.innerHTML = `
-            <div class="mes-ano">${meses[mesIdx]}/${anoAtual}</div>
-            <div class="valor">R$ ${VALOR_PARCELA.toLocaleString('pt-BR')}</div>
-            ${pago ? '<div class="tarja">PAGA ✓</div>' : ''}
-        `;
-        carrossel.appendChild(div);
-    }
+function calcularTotalPago(){
+
+return pagamentos
+.filter(p => p.confirmado === true)
+.reduce((total,p) => total + p.valor,0);
 }
 
-function rolarCarrossel(direcao) {
-    const carrossel = document.getElementById('carrosselMeses');
-    if (carrossel) {
-        const scrollAmount = 300;
-        carrossel.scrollLeft += direcao * scrollAmount;
-    }
+function calcularParcelasPagas(){
+
+return Math.floor(calcularTotalPago() / VALOR_PARCELA);
 }
 
-function adicionarPagamento(data, valor, obs) {
-    const valorNumerico = parseFloat(valor);
-    const novoId = pagamentos.length > 0 ? Math.max(...pagamentos.map(p => p.id)) + 1 : 1;
-    
-    pagamentos.push({
-        id: novoId,
-        data: data,
-        valor: valorNumerico,
-        obs: obs,
-        usuario: usuarioAtual,
-        confirmado: false
-    });
-    
-    salvarDados();
-    adicionarObservacaoAuto(`💰 Pagamento de R$ ${valorNumerico.toLocaleString('pt-BR')} registrado por ${usuarioAtual}. Aguardando confirmação.`);
+function atualizarDashboard(){
+
+const totalPago = calcularTotalPago();
+
+const saldoDevedor = META_TOTAL - totalPago;
+
+const percentual = (totalPago / META_TOTAL) * 100;
+
+const parcelasPagas = calcularParcelasPagas();
+
+document.getElementById('totalPago').innerHTML =
+`R$ ${totalPago.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+
+document.getElementById('saldoDevedor').innerHTML =
+`R$ ${saldoDevedor.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+
+document.getElementById('parcelasPagas').innerHTML =
+parcelasPagas;
+
+const progressFill =
+document.getElementById('progressoFill');
+
+progressFill.style.width = `${percentual}%`;
+
+progressFill.innerHTML = `${percentual.toFixed(1)}%`;
+
+document.getElementById('valorPagoLegenda').innerHTML =
+`R$ ${totalPago.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+
+document.getElementById('valorRestanteLegenda').innerHTML =
+`R$ ${saldoDevedor.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
+
+atualizarTabelaPagamentos();
+atualizarCronograma();
 }
 
-function confirmarPagamento(id) {
-    const pagamento = pagamentos.find(p => p.id === id);
-    if (pagamento) {
-        pagamento.confirmado = true;
-        salvarDados();
-        adicionarObservacaoAuto(`✅ Pagamento de R$ ${pagamento.valor.toLocaleString('pt-BR')} CONFIRMADO por Victor Hugo`);
-        alert('✅ Pagamento confirmado com sucesso!');
-    }
+function atualizarTabelaPagamentos(){
+
+const tbody =
+document.getElementById('listaPagamentos');
+
+tbody.innerHTML = '';
+
+pagamentos
+.sort((a,b)=>new Date(b.data)-new Date(a.data))
+.forEach(p=>{
+
+const row = tbody.insertRow();
+
+const status = p.confirmado
+? '<span class="badge-confirmado">✓ Confirmado</span>'
+: '<span class="badge-pendente">⏳ Aguardando confirmação</span>';
+
+let botoes = '';
+
+if(ehAdmin){
+
+botoes = `
+<button class="btn-editar"
+onclick="editarPagamento(${p.id})">
+✏️
+</button>
+
+<button class="btn-excluir"
+onclick="removerPagamento(${p.id})">
+❌ Excluir
+</button>
+`;
+
+}else if(ehVendedor && !p.confirmado){
+
+botoes = `
+<button class="btn-confirmar"
+onclick="confirmarPagamento(${p.id})">
+✓ Confirmar Recebimento
+</button>
+`;
+
+}else if(p.confirmado){
+
+botoes = `
+<span style="color:#10b981;">
+✓ Confirmado
+</span>
+`;
 }
 
-function editarPagamento(id) {
-    if (!ehAdmin) return;
-    const pagamento = pagamentos.find(p => p.id === id);
-    if (!pagamento) return;
-    
-    const novoValor = prompt('Editar valor (R$):', pagamento.valor);
-    if (novoValor && !isNaN(novoValor)) {
-        pagamento.valor = parseFloat(novoValor);
-        pagamento.confirmado = false;
-        salvarDados();
-        adicionarObservacaoAuto(`✏️ Pagamento #${id} editado por ${usuarioAtual}. Aguardando nova confirmação.`);
-        alert('✅ Pagamento atualizado!');
-    }
+const dataHist = new Date(p.data)
+.toLocaleDateString('pt-BR')
+.replace('/2026','/26')
+.replace('/2027','/27');
+
+row.innerHTML = `
+<td>${dataHist}</td>
+
+<td>
+R$ ${p.valor.toLocaleString('pt-BR',{
+minimumFractionDigits:2
+})}
+</td>
+
+<td>${p.obs || '-'}</td>
+
+<td>${p.usuario}</td>
+
+<td>${status}</td>
+
+<td>${botoes}</td>
+`;
+});
 }
 
-function removerPagamento(id) {
-    if (confirm('Tem certeza que deseja remover este pagamento?')) {
-        pagamentos = pagamentos.filter(p => p.id !== id);
-        salvarDados();
-        adicionarObservacaoAuto(`🗑️ Pagamento removido por ${usuarioAtual}`);
-        alert('✅ Pagamento removido!');
-    }
+function atualizarCronograma(){
+
+const totalPago = calcularTotalPago();
+
+const parcelasPagas =
+Math.floor(totalPago / VALOR_PARCELA);
+
+const carrossel =
+document.getElementById('carrosselMeses');
+
+carrossel.innerHTML = '';
+
+const meses = [
+'Jan','Fev','Mar','Abr',
+'Mai','Jun','Jul','Ago',
+'Set','Out','Nov','Dez'
+];
+
+let mesInicio = 3;
+
+for(let i = 0; i < 24; i++){
+
+let mesIdx = (mesInicio + i) % 12;
+
+let anoLong =
+2026 + Math.floor((mesInicio + i) / 12);
+
+let anoShort =
+anoLong.toString().substring(2);
+
+let pago = i < parcelasPagas;
+
+const div = document.createElement('div');
+
+div.className = `mes-card ${pago ? 'pago' : ''}`;
+
+div.innerHTML = `
+<div class="mes-ano">
+${meses[mesIdx]}/${anoShort}
+</div>
+
+<div class="valor">
+R$ ${VALOR_PARCELA.toLocaleString('pt-BR')}
+</div>
+
+${pago ? '<div class="tarja">PAGA ✓</div>' : ''}
+`;
+
+carrossel.appendChild(div);
+}
 }
 
-function adicionarObservacao(texto, auto = false) {
-    const novoId = observacoes.length > 0 ? Math.max(...observacoes.map(o => o.id)) + 1 : 1;
-    observacoes.unshift({
-        id: novoId,
-        texto: texto,
-        data: new Date().toISOString().split('T')[0],
-        usuario: auto ? 'Sistema' : usuarioAtual
-    });
-    if (observacoes.length > 100) observacoes = observacoes.slice(0, 100);
-    salvarDados();
+function adicionarPagamento(data,valor,obs){
+
+if(!ehAdmin){
+
+alert("Apenas administradores podem registrar pagamentos!");
+
+return;
 }
 
-function adicionarObservacaoAuto(texto) {
-    adicionarObservacao(texto, true);
-}
+const valorNumerico = parseFloat(valor);
 
-function atualizarObservacoes() {
-    const container = document.getElementById('listaObservacoes');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    observacoes.forEach(obs => {
-        const div = document.createElement('div');
-        div.style.cssText = 'background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #667eea;';
-        div.innerHTML = `
-            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <strong>${obs.usuario}</strong>
-                <small style="color: #666;">${new Date(obs.data).toLocaleDateString('pt-BR')}</small>
-            </div>
-            <div>${obs.texto}</div>
-        `;
-        container.appendChild(div);
-    });
-}
+const novoId = pagamentos.length > 0
+? Math.max(...pagamentos.map(p=>p.id)) + 1
+: 1;
 
-function exportarDados() {
-    const dados = { pagamentos, observacoes };
-    const dataStr = JSON.stringify(dados, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', `terreno_backup_${new Date().toISOString().split('T')[0]}.json`);
-    linkElement.click();
-}
-
-function importarDados() {
-    document.getElementById('importFile').click();
-}
-
-function processarImportacao(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const dados = JSON.parse(e.target.result);
-            if (dados.pagamentos) pagamentos = dados.pagamentos;
-            if (dados.observacoes) observacoes = dados.observacoes;
-            salvarDados();
-            alert('✅ Dados importados com sucesso!');
-        } catch (error) {
-            alert('❌ Erro ao importar arquivo');
-        }
-    };
-    reader.readAsText(file);
-}
-
-function resetarDados() {
-    if (ehAdmin && confirm('⚠️ ATENÇÃO! Isso irá apagar TODOS os dados. Tem certeza?')) {
-        localStorage.clear();
-        location.reload();
-    }
-}
-
-function fazerLogin() {
-    const usuario = document.getElementById('usuarioSelect').value;
-    const senha = document.getElementById('senhaInput').value;
-    
-    if (SENHAS[usuario] === senha) {
-        usuarioAtual = usuario;
-        ehAdmin = (usuario === 'Valtail');
-        ehVendedor = (usuario === 'Victor Hugo');
-        
-        document.getElementById('loginSection').style.display = 'none';
-        document.getElementById('appSection').style.display = 'block';
-        document.getElementById('usuarioLogado').innerHTML = `👋 Olá, ${usuario}!`;
-        
-        if (ehAdmin) {
-            document.getElementById('adminBadge').style.display = 'block';
-            document.getElementById('adminTab').style.display = 'block';
-        } else {
-            document.getElementById('adminBadge').style.display = 'none';
-            document.getElementById('adminTab').style.display = 'none';
-        }
-        
-        if (ehVendedor) {
-            document.getElementById('vendedorBadge').style.display = 'block';
-        } else {
-            document.getElementById('vendedorBadge').style.display = 'none';
-        }
-        
-        carregarDados();
-        atualizarDashboard();
-        atualizarObservacoes();
-    } else {
-        alert('❌ Senha incorreta! Tente novamente.');
-    }
-}
-
-function deslogar() {
-    if (confirm('Tem certeza que deseja sair?')) {
-        usuarioAtual = null;
-        ehAdmin = false;
-        ehVendedor = false;
-        document.getElementById('appSection').style.display = 'none';
-        document.getElementById('loginSection').style.display = 'block';
-        document.getElementById('senhaInput').value = '';
-    }
-}
-
-function switchTab(tabName) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    const targetTab = document.getElementById(`tab-${tabName}`);
-    if (targetTab) targetTab.classList.add('active');
-    if (event && event.target) event.target.classList.add('active');
-}
-
-// Event Listeners
-document.getElementById('formPagamento').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const data = document.getElementById('dataPagamento').value;
-    let valor = document.getElementById('valorPagamento').value;
-    const obs = document.getElementById('obsPagamento').value;
-    
-    if (!data || !valor) {
-        alert('❌ Preencha todos os campos obrigatórios');
-        return;
-    }
-    
-    valor = parseFloat(valor);
-    if (isNaN(valor) || valor <= 0) {
-        alert('❌ Digite um valor válido');
-        return;
-    }
-    
-    adicionarPagamento(data, valor, obs);
-    document.getElementById('formPagamento').reset();
-    switchTab('pagamentos');
-    alert('✅ Pagamento registrado! Aguardando confirmação do vendedor Victor Hugo.');
+pagamentos.push({
+id:novoId,
+data:data,
+valor:valorNumerico,
+obs:obs,
+usuario:usuarioAtual,
+confirmado:false
 });
 
-document.getElementById('formObservacao').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const texto = document.getElementById('novaObservacao').value;
-    if (!texto) {
-        alert('❌ Digite uma observação');
-        return;
-    }
-    adicionarObservacao(texto);
-    document.getElementById('novaObservacao').value = '';
-    alert('✅ Observação adicionada!');
+salvarDados();
+
+adicionarObservacaoAuto(
+`💰 Pagamento de R$ ${valorNumerico.toLocaleString('pt-BR')} registrado por ${usuarioAtual}.`
+);
+}
+
+function confirmarPagamento(id){
+
+const pagamento = pagamentos.find(p => p.id === id);
+
+if(pagamento){
+
+pagamento.confirmado = true;
+
+const agora = new Date();
+
+const recibo = {
+
+id:Date.now(),
+
+valor:pagamento.valor,
+
+data:agora.toLocaleDateString('pt-BR'),
+
+hora:agora.toLocaleTimeString('pt-BR'),
+
+vendedor:'Victor Hugo',
+
+compradores:'Valtail e Débora Melo',
+
+observacao:pagamento.obs
+};
+
+recibos.unshift(recibo);
+
+salvarDados();
+
+adicionarObservacaoAuto(
+`✅ Pagamento de R$ ${pagamento.valor.toLocaleString('pt-BR')} CONFIRMADO por Victor Hugo.`
+);
+
+alert('✅ Pagamento confirmado e recibo emitido!');
+}
+}
+
+function editarPagamento(id){
+
+if(!ehAdmin) return;
+
+const pagamento =
+pagamentos.find(p => p.id === id);
+
+if(!pagamento) return;
+
+const novoValor =
+prompt('Editar valor (R$):',pagamento.valor);
+
+if(novoValor && !isNaN(novoValor)){
+
+pagamento.valor = parseFloat(novoValor);
+
+salvarDados();
+}
+}
+
+function removerPagamento(id){
+
+if(confirm('Remover?')){
+
+pagamentos =
+pagamentos.filter(p => p.id !== id);
+
+salvarDados();
+}
+}
+
+function adicionarObservacao(texto,auto=false){
+
+const novoId = observacoes.length > 0
+? Math.max(...observacoes.map(o=>o.id)) + 1
+: 1;
+
+observacoes.unshift({
+id:novoId,
+texto:texto,
+data:new Date().toISOString().split('T')[0],
+usuario:auto ? 'Sistema' : usuarioAtual
 });
+
+salvarDados();
+}
+
+function adicionarObservacaoAuto(texto){
+
+adicionarObservacao(texto,true);
+}
+
+function atualizarObservacoes(){
+
+const container =
+document.getElementById('listaObservacoes');
+
+container.innerHTML = '';
+
+observacoes.forEach(obs=>{
+
+const div = document.createElement('div');
+
+div.style.cssText = `
+background:#f8f9fa;
+padding:15px;
+border-radius:10px;
+margin-bottom:10px;
+border-left:4px solid #667eea;
+`;
+
+div.innerHTML = `
+<div style="display:flex;justify-content:space-between;">
+<strong>${obs.usuario}</strong>
+<small>${obs.data}</small>
+</div>
+
+<div>${obs.texto}</div>
+`;
+
+container.appendChild(div);
+});
+}
+
+function atualizarRecibos(){
+
+const container =
+document.getElementById('listaRecibos');
+
+container.innerHTML = '';
+
+if(recibos.length === 0){
+
+container.innerHTML =
+`<div style="padding:20px;">
+Nenhum recibo emitido ainda.
+</div>`;
+
+return;
+}
+
+recibos.forEach(recibo=>{
+
+const div = document.createElement('div');
+
+div.className = 'recibo-box';
+
+div.innerHTML = `
+
+<div class="recibo-topo">
+
+<h2>🧾 RECIBO DE PAGAMENTO</h2>
+
+<p>
+Confirmação oficial de recebimento bancário
+</p>
+
+</div>
+
+<div class="recibo-info">
+
+<p>
+<strong>📅 Data:</strong>
+${recibo.data}
+</p>
+
+<p>
+<strong>⏰ Horário:</strong>
+${recibo.hora}
+</p>
+
+<p>
+<strong>💰 Valor:</strong>
+R$ ${recibo.valor.toLocaleString('pt-BR',{
+minimumFractionDigits:2
+})}
+</p>
+
+<hr style="margin:15px 0;">
+
+<p>
+<strong>👤 Vendedor:</strong>
+Victor Hugo
+</p>
+
+<p>
+<strong>🤝 Compradores:</strong>
+Valtail e Débora Melo
+</p>
+
+<p>
+<strong>📝 Referência:</strong>
+${recibo.observacao || '-'}
+</p>
+
+</div>
+
+<div class="recibo-confirmacao">
+
+✅ Victor Hugo confirma oficialmente o recebimento do valor acima em sua conta bancária.
+
+</div>
+
+${
+usuarioAtual === 'Valtail' || usuarioAtual === 'Débora'
+?
+`
+<div style="display:flex;gap:10px;flex-wrap:wrap;">
+
+<button class="btn-imprimir"
+onclick="imprimirRecibo(${recibo.id})">
+
+🖨️ Imprimir Recibo
+
+</button>
+
+<button
+style="
+margin-top:20px;
+background:#25d366;
+color:white;
+"
+
+onclick="enviarWhatsApp(${recibo.id})">
+
+📲 Enviar WhatsApp
+
+</button>
+
+</div>
+`
+:
+''
+}
+
+`;
+
+container.appendChild(div);
+});
+}
+
+function enviarWhatsApp(id){
+
+const recibo =
+recibos.find(r => r.id === id);
+
+if(!recibo) return;
+
+const mensagem = encodeURIComponent(
+
+`🧾 RECIBO DE PAGAMENTO
+
+📅 Data: ${recibo.data}
+⏰ Horário: ${recibo.hora}
+
+💰 Valor:
+R$ ${recibo.valor.toLocaleString('pt-BR',{
+minimumFractionDigits:2
+})}
+
+👤 Vendedor:
+Victor Hugo
+
+🤝 Compradores:
+Valtail e Débora Melo
+
+📝 Referência:
+${recibo.observacao || '-'}
+
+✅ Victor Hugo confirma oficialmente o recebimento do valor acima em sua conta bancária.`
+);
+
+window.open(
+`https://wa.me/?text=${mensagem}`,
+'_blank'
+);
+}
+
+function imprimirRecibo(id){
+
+const recibo =
+recibos.find(r => r.id === id);
+
+if(!recibo) return;
+
+const janela =
+window.open('','','width=800,height=900');
+
+janela.document.write(`
+
+<html>
+
+<head>
+
+<title>Recibo</title>
+
+<style>
+
+body{
+font-family:Arial;
+padding:40px;
+line-height:1.8;
+}
+
+h1{
+text-align:center;
+color:#10b981;
+}
+
+.box{
+border:2px solid #10b981;
+border-radius:15px;
+padding:30px;
+}
+.tabs{
+    position:fixed;
+    bottom:0;
+    left:0;
+    width:100%;
+    background:white;
+    padding:12px;
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    z-index:999;
+    box-shadow:0 -5px 20px rgba(0,0,0,0.12);
+.tab-content{
+    margin-bottom:40px;
+}
+
+.tabs::-webkit-scrollbar{
+    display:none;
+}
+
+.tab-btn{
+    min-width:max-content;
+    white-space:nowrap;
+    flex-shrink:0;
+}
+
+/* espaço para o menu inferior não cobrir conteúdo */
+.container{
+    padding-bottom:110px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h1>RECIBO DE PAGAMENTO</h1>
+
+<p><strong>Data:</strong> ${recibo.data}</p>
+
+<p><strong>Horário:</strong> ${recibo.hora}</p>
+
+<p>
+<strong>Valor:</strong>
+R$ ${recibo.valor.toLocaleString('pt-BR',{
+minimumFractionDigits:2
+})}
+</p>
+
+<hr>
+
+<p><strong>Vendedor:</strong> Victor Hugo</p>
+
+<p><strong>Compradores:</strong> Valtail e Débora Melo</p>
+
+<p><strong>Referência:</strong> ${recibo.observacao || '-'}</p>
+
+<br><br>
+
+<p>
+Victor Hugo confirma oficialmente o recebimento do valor acima em sua conta bancária.
+</p>
+
+<br><br><br>
+
+_______________________________<br>
+Victor Hugo
+
+</div>
+
+<script>
+window.print();
+<\/script>
+
+</body>
+
+</html>
+`);
+
+janela.document.close();
+}
+
+function exportarDados(){
+
+const dataStr = JSON.stringify({
+pagamentos,
+observacoes,
+recibos
+},null,2);
+
+const dataUri =
+'data:application/json;charset=utf-8,' +
+encodeURIComponent(dataStr);
+
+const link = document.createElement('a');
+
+link.setAttribute('href',dataUri);
+
+link.setAttribute('download','backup.json');
+
+link.click();
+}
+
+function importarDados(){
+
+document.getElementById('importFile').click();
+}
+
+function processarImportacao(event){
+
+const file = event.target.files[0];
+
+const reader = new FileReader();
+
+reader.onload = (e)=>{
+
+const d = JSON.parse(e.target.result);
+
+pagamentos = d.pagamentos || [];
+observacoes = d.observacoes || [];
+recibos = d.recibos || [];
+
+salvarDados();
+};
+
+reader.readAsText(file);
+}
+
+function resetarDados(){
+
+if(confirm('Resetar?')){
+
+localStorage.clear();
+
+location.reload();
+}
+}
+
+function fazerLogin(){
+
+const usuario =
+document.getElementById('usuarioSelect').value;
+
+const senha =
+document.getElementById('senhaInput').value;
+
+if(SENHAS[usuario] === senha){
+
+usuarioAtual = usuario;
+
+ehAdmin = (usuario === 'Valtail');
+
+ehVendedor = (usuario === 'Victor Hugo');
+
+document.getElementById('loginSection').style.display = 'none';
+
+document.getElementById('appSection').style.display = 'block';
+
+document.getElementById('usuarioLogado').innerHTML =
+`👋 Olá, ${usuario}!`;
+
+const btnSalvar =
+document.getElementById('btnSalvarPagamento');
+
+const msgAdmin =
+document.getElementById('adminOnlyMsg');
+
+const btnAdicionarTab =
+document.getElementById('btnAdicionarTab');
+
+if(ehAdmin){
+
+btnSalvar.disabled = false;
+
+btnSalvar.style.opacity = "1";
+
+btnSalvar.style.cursor = "pointer";
+
+msgAdmin.style.display = "none";
+
+btnAdicionarTab.style.display = "inline-block";
+
+}else{
+
+btnSalvar.disabled = true;
+
+btnSalvar.style.opacity = "0.5";
+
+btnSalvar.style.cursor = "not-allowed";
+
+msgAdmin.style.display = "block";
+
+btnAdicionarTab.style.display = "none";
+}
+
+if(ehAdmin){
+
+document.getElementById('adminBadge').style.display = 'block';
+
+document.getElementById('adminTab').style.display = 'block';
+}
+
+if(ehVendedor){
+
+document.getElementById('vendedorBadge').style.display = 'block';
+}
+
+carregarDados();
+
+atualizarDashboard();
+
+atualizarObservacoes();
+
+atualizarRecibos();
+
+}else{
+
+alert('❌ Senha incorreta!');
+}
+}
+
+function deslogar(){
+
+location.reload();
+}
+
+function switchTab(tabName){
+
+document.querySelectorAll('.tab-content')
+.forEach(tab => tab.classList.remove('active'));
+
+document.querySelectorAll('.tab-btn')
+.forEach(btn => btn.classList.remove('active'));
+
+document.getElementById(`tab-${tabName}`)
+.classList.add('active');
+}
+
+document.getElementById('formPagamento')
+.addEventListener('submit',(e)=>{
+
+e.preventDefault();
+
+const data =
+document.getElementById('dataPagamento').value;
+
+const valor =
+document.getElementById('valorPagamento').value;
+
+const obs =
+document.getElementById('obsPagamento').value;
+
+adicionarPagamento(data,valor,obs);
+
+document.getElementById('formPagamento').reset();
+
+switchTab('pagamentos');
+});
+
+document.getElementById('formObservacao')
+.addEventListener('submit',(e)=>{
+
+e.preventDefault();
+
+const texto =
+document.getElementById('novaObservacao').value;
+
+if(texto){
+
+adicionarObservacao(texto);
+
+document.getElementById('novaObservacao').value = '';
+}
+});
+
+function toggleSenha(){
+
+const input =
+document.getElementById('senhaInput');
+
+if(input.type === 'password'){
+
+input.type = 'text';
+
+}else{
+
+input.type = 'password';
+}
+}
+
 </script>
+
+<div style="height:40px;"></div>
+
+<div class="tabs">
+
+<button class="tab-btn active"
+onclick="switchTab('pagamentos')">
+💰 Pagamentos
+</button>
+
+<button class="tab-btn"
+id="btnAdicionarTab"
+onclick="switchTab('adicionar')">
+➕ Adicionar
+</button>
+
+<button class="tab-btn"
+onclick="switchTab('cronograma')">
+📅 Cronograma
+</button>
+
+<button class="tab-btn"
+onclick="switchTab('documentos')">
+📁 Arquivos/Fotos
+</button>
+
+<button class="tab-btn"
+onclick="switchTab('observacoes')">
+📝 Observações
+</button>
+
+<button class="tab-btn"
+onclick="switchTab('recibos')">
+🧾 Recibos
+</button>
+
+<div id="adminTab" style="display:none;">
+<button class="tab-btn"
+onclick="switchTab('admin')">
+⚙️ Admin
+</button>
+</div>
+
+</div>
 </body>
 </html>
