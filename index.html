@@ -1212,12 +1212,14 @@ function confirmarPagamento(id) {
         
         alert('✅ Pagamento confirmado e recibo emitido!');
 
-        // 🔻 APENAS ATUALIZAR A TELA (sem recarregar a página) 🔻
-        recarregarDados();
+        // 🔻 FORÇAR RECARREGAMENTO DA PÁGINA (mais confiável) 🔻
+        setTimeout(function() {
+            location.reload();
+        }, 500);
     }
 }
 
-function editarPagamento(id){
+  function editarPagamento(id){
 
 if(!ehAdmin) return;
 
@@ -1708,8 +1710,23 @@ alert('❌ Senha incorreta!');
 }
 }
 
-function deslogar(){
-    location.reload();
+function deslogar() {
+    if (confirm('Tem certeza que deseja sair?')) {
+        // Limpar dados da sessão
+        usuarioAtual = null;
+        ehAdmin = false;
+        ehVendedor = false;
+        
+        // Esconder app e mostrar login
+        document.getElementById('appSection').style.display = 'none';
+        document.getElementById('loginSection').style.display = 'block';
+        
+        // Limpar campo de senha
+        document.getElementById('senhaInput').value = '';
+        
+        // No CodePen, não use location.reload()
+        // Apenas limpar os campos já resolve
+    }
 }
 
 function switchTab(tabName){
