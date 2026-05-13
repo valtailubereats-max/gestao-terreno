@@ -1186,6 +1186,7 @@ adicionarObservacaoAuto(
 notificarVictor(valorNumerico, obs);
 
 alert('✅ Pagamento registrado! Victor foi notificado via WhatsApp.');
+recarregarDados();
 }
 
 function confirmarPagamento(id){
@@ -1224,6 +1225,7 @@ adicionarObservacaoAuto(
 );
 
 alert('✅ Pagamento confirmado e recibo emitido!');
+recarregarDados();
 }
 }
 
@@ -1782,6 +1784,14 @@ input.type = 'text';
 
 input.type = 'password';
 }
+}
+async function recarregarDados() {
+    console.log("🔄 Recarregando dados...");
+    await carregarDoSupabase();
+    atualizarDashboard();
+    atualizarObservacoes();
+    atualizarRecibos();
+    console.log("✅ Dados atualizados!");
 }
 
 // FUNÇÃO PARA CARREGAR DO SUPABASE
