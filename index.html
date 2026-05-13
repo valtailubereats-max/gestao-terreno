@@ -1785,12 +1785,44 @@ input.type = 'text';
 input.type = 'password';
 }
 }
+// FUNÇÃO PARA RECARREGAR DADOS (APENAS UMA VEZ)
 async function recarregarDados() {
     console.log("🔄 Recarregando dados...");
-    await carregarDoSupabase();
+    
+    // Forçar recarregamento do Supabase
+    const { data: pag, error: errPag } = await sb
+        .from('pagamentos')
+        .select('*')
+        .order('data', { ascending: false });
+    
+    if(pag && pag.length > 0) {
+        pagamentos = pag;
+        console.log(`${pag.length} pagamentos recarregados`);
+    }
+    
+    const { data: obs, error: errObs } = await sb
+        .from('observacoes')
+        .select('*')
+        .order('data', { ascending: false });
+    
+    if(obs && obs.length > 0) {
+        observacoes = obs;
+    }
+    
+    // Atualizar recibos também
+    const { data: rec, error: errRec } = await sb
+        .from('recibos')
+        .select('*');
+    
+    if(rec && rec.length > 0) {
+        recibos = rec;
+    }
+    
+    // Atualizar a tela
     atualizarDashboard();
     atualizarObservacoes();
     atualizarRecibos();
+    
     console.log("✅ Dados atualizados!");
 }
 
@@ -1801,7 +1833,8 @@ async function carregarDoSupabase() {
         
         const { data: pag, error: errPag } = await sb
             .from('pagamentos')
-            .select('*');
+            .select('*')
+            .order('data', { ascending: false });
         
         if(errPag) console.error("Erro:", errPag);
         if(pag && pag.length > 0) {
@@ -1811,14 +1844,24 @@ async function carregarDoSupabase() {
         
         const { data: obs, error: errObs } = await sb
             .from('observacoes')
-            .select('*');
+            .select('*')
+            .order('data', { ascending: false });
         
         if(obs && obs.length > 0) {
             observacoes = obs;
         }
         
+        const { data: rec, error: errRec } = await sb
+            .from('recibos')
+            .select('*');
+        
+        if(rec && rec.length > 0) {
+            recibos = rec;
+        }
+        
         atualizarDashboard();
         atualizarObservacoes();
+        atualizarRecibos();
         
     } catch(e) {
         console.error("Erro de conexão:", e);
