@@ -1404,26 +1404,21 @@ ${recibo.observacao || '-'}
 
 <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
 
-<button class="btn-imprimir"
-onclick="imprimirRecibo(${recibo.id})">
+    <button class="btn-imprimir" onclick="imprimirRecibo(${recibo.id})">
+        🖨️ Imprimir Recibo
+    </button>
 
-🖨️ Imprimir Recibo
+    <button style="background:#25d366; color:white; padding:12px 30px; border-radius:8px;"
+        onclick="enviarWhatsAppRecibo(${recibo.id})">
+        📲 Copiar e Abrir WhatsApp
+    </button>
 
-</button>
-
-<button
-style="
-background:#25d366;
-color:white;
-padding:12px 30px;
-border-radius:8px;
-"
-
-onclick="enviarWhatsAppRecibo(${recibo.id})">
-
-📲 Enviar WhatsApp
-
-</button>
+    <!-- 🔻 ADICIONE ESTE TERCEIRO BOTÃO 🔻 -->
+    <button style="background:#128C7E; color:white; padding:12px 30px; border-radius:8px;"
+        onclick="enviarWhatsAppDireto(${recibo.id})">
+        📱 Enviar Direto (Victor)
+    </button>
+    <!-- 🔺 ATÉ AQUI 🔺 -->
 
 </div>
 
@@ -1435,117 +1430,141 @@ container.appendChild(div);
 
 function enviarWhatsAppRecibo(id) {
 
-const recibo = recibos.find(r => r.id === id);
+    const recibo = recibos.find(r => r.id === id);
+    if (!recibo) return;
 
-if(!recibo) return;
+    const mensagem = 
+`🧾 RECIBO DE PAGAMENTO - TERRENO
 
-const mensagem = 
-`🧾 RECIBO DE PAGAMENTO
-
-📅 Data: ${recibo.data} - ⏰ Horário: ${recibo.hora}
+📅 Data: ${recibo.data}
+⏰ Horário: ${recibo.hora}
 
 💰 Valor: R$ ${recibo.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
 
-👤 Vendedor: Victor Hugo
-🤝 Compradores: Valtail e Débora Melo
+📌 Descrição:
+Pagamento referente à compra do terreno localizado na Rua São Lazaro, nº 110, Santana, Piracicaba-SP, medindo 491,15 m².
+
+O terreno faz divisa com o terreno de Débora Fernanda Bailarin e com o terreno de Lázaro Armando Bailarin.
+
+👤 Vendedor: Victor Hugo Bailarin
+🤝 Compradores: Valtail Menegassi e Débora Fernanda Bailarin
 
 📝 Referência: ${recibo.observacao || '-'}
 
-✅ Victor Hugo confirma oficialmente o recebimento do valor acima.`;
+✅ Victor Hugo confirma o recebimento do valor.`;
 
-navigator.clipboard.writeText(mensagem);
-alert('✅ Mensagem copiada! Vá ao WhatsApp, escolha o contato e cole (Ctrl+V).');
-window.open('https://web.whatsapp.com', '_blank');
+    // Copiar mensagem
+    navigator.clipboard.writeText(mensagem);
+    
+    // Mostrar alerta com instruções para o celular
+    alert('✅ Mensagem copiada!\n\n📱 No CELULAR:\n1. Abra o WhatsApp\n2. Escolha o contato\n3. Cole a mensagem (segure e cole)\n\n💻 No COMPUTADOR: WhatsApp Web vai abrir agora.');
+    
+    // Abrir WhatsApp Web (para computador)
+    window.open('https://web.whatsapp.com', '_blank');
 }
 
-function imprimirRecibo(id){
+function imprimirRecibo(id) {
 
-const recibo =
-recibos.find(r => r.id === id);
+    const recibo = recibos.find(r => r.id === id);
+    if (!recibo) return;
 
-if(!recibo) return;
+    // Link da assinatura do Victor
+    const assinaturaUrl = "https://drive.google.com/uc?export=view&id=1xIfdVrvbw7BIoDVPyAHHNgoprKq5CKqY";
 
-const janela =
-window.open('','','width=800,height=900');
+    const janela = window.open('', '', 'width=800,height=900');
 
-janela.document.write(`
+    janela.document.write(`
 
 <html>
-
 <head>
-
-<title>Recibo</title>
-
+<title>Recibo - Terreno</title>
 <style>
-
-body{
-font-family:Arial;
-padding:40px;
-line-height:1.8;
-}
-
-h1{
-text-align:center;
-color:#10b981;
-}
-
-.box{
-border:2px solid #10b981;
-border-radius:15px;
-padding:30px;
-}
-
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Times New Roman', Arial, sans-serif; padding: 40px; line-height: 1.6; }
+    h1 { text-align: center; color: #10b981; margin-bottom: 30px; font-size: 28px; }
+    .box { border: 2px solid #10b981; border-radius: 15px; padding: 30px; max-width: 800px; margin: 0 auto; }
+    .recibo-info p { margin: 8px 0; }
+    .descricao-terreno { 
+        background: #f8f9fa; 
+        padding: 20px; 
+        border-radius: 10px; 
+        margin: 20px 0;
+        border-left: 5px solid #10b981;
+        font-size: 14px;
+    }
+    .assinatura { 
+        margin-top: 40px; 
+        text-align: center; 
+    }
+    .assinatura img { 
+        max-width: 200px; 
+        max-height: 80px; 
+        object-fit: contain;
+    }
+    .linha-assinatura {
+        margin-top: 30px;
+        text-align: center;
+    }
+    hr { margin: 20px 0; }
 </style>
 </head>
-
 <body>
 
 <div class="box">
 
-<h1>RECIBO DE PAGAMENTO</h1>
+    <h1>🧾 RECIBO DE PAGAMENTO</h1>
 
-<p><strong>Data:</strong> ${recibo.data}</p>
+    <div class="recibo-info">
+        <p><strong>📅 Data:</strong> ${recibo.data}</p>
+        <p><strong>⏰ Horário:</strong> ${recibo.hora}</p>
+        <p><strong>💰 Valor:</strong> R$ ${recibo.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+    </div>
 
-<p><strong>Horário:</strong> ${recibo.hora}</p>
+    <hr>
 
-<p>
-<strong>Valor:</strong>
-R$ ${recibo.valor.toLocaleString('pt-BR',{
-minimumFractionDigits:2
-})}
-</p>
+    <div class="descricao-terreno">
+        <p><strong>📌 DESCRIÇÃO DO PAGAMENTO:</strong></p>
+        <p style="margin-top: 10px;">
+            O presente pagamento refere-se à <strong>compra e venda do terreno</strong> localizado na 
+            <strong>Rua São Lazaro, nº 110, Santana, Piracicaba - SP</strong>, medindo aproximadamente 
+            <strong>491,15 m² (quatrocentos e noventa e um metros quadrados e quinze centímetros)</strong>.
+        </p>
+        <p style="margin-top: 10px;">
+            O imóvel faz divisa com o terreno já pertencente a <strong>Débora Fernanda Bailarin</strong> e, 
+            do outro lado, divisa com o terreno de <strong>Lázaro Armando Bailarin</strong>.
+        </p>
+    </div>
 
-<hr>
+    <hr>
 
-<p><strong>Vendedor:</strong> Victor Hugo</p>
+    <div class="recibo-info">
+        <p><strong>👤 Vendedor:</strong> Victor Hugo Bailarin</p>
+        <p><strong>🤝 Compradores:</strong> Valtail Menegassi de Melo e Débora Fernanda Bailarin</p>
+        <p><strong>📝 Referência:</strong> ${recibo.observacao || 'Pagamento registrado no sistema'}</p>
+    </div>
 
-<p><strong>Compradores:</strong> Valtail e Débora Melo</p>
+    <div class="recibo-confirmacao" style="margin: 20px 0; padding: 15px; background: #f0fff7; border-left: 5px solid #10b981; border-radius: 10px;">
+        ✅ Victor Hugo Bailarin confirma oficialmente o recebimento do valor acima em sua conta bancária, 
+        referente à compra do terreno descrito.
+    </div>
 
-<p><strong>Referência:</strong> ${recibo.observacao || '-'}</p>
-
-<br><br>
-
-<p>
-Victor Hugo confirma oficialmente o recebimento do valor acima em sua conta bancária.
-</p>
-
-<br><br><br>
-
-_______________________________<br>
-Victor Hugo
+    <div class="assinatura">
+        <p><strong>Assinatura do Vendedor:</strong></p>
+        <img src="${assinaturaUrl}" alt="Assinatura de Victor Hugo" onerror="this.style.display='none'; this.nextSibling.style.display='block';">
+        <div style="display:none;">_______________________________</div>
+        <p style="margin-top: 10px;">Victor Hugo Bailarin</p>
+    </div>
 
 </div>
 
 <script>
-window.print();
+    window.print();
 <\/script>
 
 </body>
-
 </html>
 `);
-
-janela.document.close();
+    janela.document.close();
 }
 
 function exportarDados(){
@@ -1854,6 +1873,37 @@ async function carregarDoSupabase() {
     } catch(e) {
         console.error("Erro de conexão:", e);
     }
+}
+
+function enviarWhatsAppDireto(id) {
+
+    const recibo = recibos.find(r => r.id === id);
+    if (!recibo) return;
+
+    const numero = numeroVictor || "4407508309536";
+
+    const mensagem = 
+`🧾 RECIBO DE PAGAMENTO - TERRENO
+
+📅 Data: ${recibo.data}
+⏰ Horário: ${recibo.hora}
+
+💰 Valor: R$ ${recibo.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+
+📌 Descrição:
+Pagamento referente à compra do terreno localizado na Rua São Lazaro, nº 110, Santana, Piracicaba-SP, medindo 491,15 m².
+
+O terreno faz divisa com o terreno de Débora Fernanda Bailarin e com o terreno de Lázaro Armando Bailarin.
+
+👤 Vendedor: Victor Hugo Bailarin
+🤝 Compradores: Valtail Menegassi e Débora Fernanda Bailarin
+
+📝 Referência: ${recibo.observacao || '-'}
+
+✅ Victor Hugo confirma o recebimento do valor.`;
+
+    const msgCodificada = encodeURIComponent(mensagem);
+    window.open(`https://api.whatsapp.com/send?phone=${numero}&text=${msgCodificada}`, '_blank');
 }
 
 </script>
