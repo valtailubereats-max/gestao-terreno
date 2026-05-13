@@ -1207,13 +1207,13 @@ function confirmarPagamento(id) {
 
         recibos.unshift(recibo);
         salvarDados();
+        
         adicionarObservacaoAuto(`✅ Pagamento de R$ ${pagamento.valor.toLocaleString('pt-BR')} CONFIRMADO por Victor Hugo.`);
+        
         alert('✅ Pagamento confirmado e recibo emitido!');
 
-        // 🔻 FORÇAR RECARREGAMENTO DA TELA 🔻
-        setTimeout(function() {
-            location.reload();
-        }, 1000);
+        // 🔻 APENAS ATUALIZAR A TELA (sem recarregar a página) 🔻
+        recarregarDados();
     }
 }
 
