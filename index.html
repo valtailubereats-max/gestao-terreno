@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Compra do Terreno</title>
@@ -122,9 +123,13 @@ table{
 }
 
 th,td{
-    padding:12px;
+    padding:6px 8px;
     text-align:left;
     border-bottom:1px solid #eee;
+    font-size:12px;
+    vertical-align:top;
+    line-height:1.3;
+    word-break:break-word;
 }
 
 .form-group{
@@ -243,9 +248,10 @@ button{
 
 .btn-editar,
 .btn-excluir,
-.btn-confirmar{
-    padding:5px 10px;
-    font-size:12px;
+.btn-confirmar,
+.btn-excluir-obs{
+    padding:4px 6px;
+    font-size:10px;
     margin:2px;
     border:none;
     border-radius:5px;
@@ -267,6 +273,11 @@ button{
     color:white;
 }
 
+.btn-excluir-obs{
+    background:#f59e0b;
+    color:white;
+}
+
 .docs-grid{
     display:grid;
     grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
@@ -283,6 +294,7 @@ button{
     text-decoration:none;
     color:#333;
     transition:0.3s;
+    cursor:pointer;
 }
 
 .doc-item:hover{
@@ -440,7 +452,6 @@ style="background:#ef4444;color:white;margin-top:15px;">
 
 <div class="stat-card">
 <div class="stat-title">📊 Progresso</div>
-
 <div class="progress-bar">
 <div class="progress-fill" id="progressoFill">0%</div>
 </div>
@@ -453,18 +464,14 @@ style="background:#ef4444;color:white;margin-top:15px;">
 
 </div>
 
-
-
-<!-- PAGAMENTOS -->
-
+<!-- ========== TAB PAGAMENTOS ========== -->
 <div id="tab-pagamentos" class="tab-content active">
 
 <h3>📋 Histórico de Pagamentos</h3>
 
-<div style="overflow-x:auto;">
+<div style="overflow-x:auto;width:100%;">
 
 <table>
-
 <thead>
 <tr>
 <th>Data</th>
@@ -475,22 +482,18 @@ style="background:#ef4444;color:white;margin-top:15px;">
 <th>Ações</th>
 </tr>
 </thead>
-
 <tbody id="listaPagamentos"></tbody>
-
 </table>
 
 </div>
 </div>
 
-<!-- ADICIONAR -->
-
+<!-- ========== TAB ADICIONAR ========== -->
 <div id="tab-adicionar" class="tab-content">
 
 <h3>➕ Novo Pagamento</h3>
 
-<div id="adminOnlyMsg"
-style="color:#ef4444;font-weight:bold;margin-bottom:10px;display:none;">
+<div id="adminOnlyMsg" style="color:#ef4444;font-weight:bold;margin-bottom:10px;display:none;">
 ⚠️ Apenas administradores podem registrar pagamentos.
 </div>
 
@@ -503,12 +506,7 @@ style="color:#ef4444;font-weight:bold;margin-bottom:10px;display:none;">
 
 <div class="form-group">
 <label>💰 Valor (R$)</label>
-
-<input type="number"
-id="valorPagamento"
-step="0.01"
-required
-placeholder="Ex: 3000.00">
+<input type="number" id="valorPagamento" step="0.01" required placeholder="Ex: 3000.00">
 </div>
 
 <div class="form-group">
@@ -516,127 +514,104 @@ placeholder="Ex: 3000.00">
 <textarea id="obsPagamento" rows="3"></textarea>
 </div>
 
-<button type="submit"
-id="btnSalvarPagamento">
+<button type="submit" id="btnSalvarPagamento">
 Registrar Pagamento
 </button>
 
 </form>
 </div>
 
-<!-- CRONOGRAMA -->
-
+<!-- ========== TAB CRONOGRAMA ========== -->
 <div id="tab-cronograma" class="tab-content">
 
 <h3>📅 Cronograma de Pagamentos (Abril/26 - Março/28)</h3>
 
 <div class="carrossel-container">
-
 <div class="carrossel" id="carrosselMeses"></div>
-
 </div>
 
 <div style="margin-top:40px;background:#f0f0f0;padding:20px;border-radius:8px;margin-bottom:30px;">
 
-<div style="
-background:#fff;
-padding:12px;
-border-radius:8px;
-border:1px solid #eee;
-font-size:13px;
-line-height:1.5;
-">
+<div style="background:#fff;padding:12px;border-radius:8px;border:1px solid #eee;font-size:13px;line-height:1.5;">
 
-    <p style="margin-bottom:8px;">
-        💡
-        <strong>Total do terreno: R$ 100.000</strong>
-        | Parcelas de R$ 3.000
-    </p>
-
-    <hr style="margin:8px 0;">
-
-    <p style="margin-bottom:6px;">
-        💰
-        <strong>Valor já pago:</strong>
-
-        <span
-        style="color:#10b981;font-size:14px;font-weight:bold;"
-        id="valorPagoLegenda">
-            R$ 0,00
-        </span>
-    </p>
-
-    <p>
-        📊
-        <strong>Valor restante:</strong>
-
-        <span
-        style="color:#ef4444;font-size:14px;font-weight:bold;"
-        id="valorRestanteLegenda">
-            R$ 0,00
-        </span>
-    </p>
-
-</div>
-<!-- DOCUMENTOS -->
-
-<div id="tab-documentos" class="tab-content">
-
-<h3>📁 Documentos e Fotos do Admin</h3>
-
-<p style="margin-bottom:15px;">
-Abaixo estão os arquivos e fotos compartilhados pela administração.
+<p style="margin-bottom:8px;">
+💡 <strong>Total do terreno: R$ 100.000</strong> | Parcelas de R$ 3.000
 </p>
 
-<div class="docs-grid" id="listaDocs">
+<hr style="margin:8px 0;">
 
-<a href="#" class="doc-item">
-📄 Contrato_Social.pdf
-</a>
+<p style="margin-bottom:6px;">
+💰 <strong>Valor já pago:</strong>
+<span style="color:#10b981;font-size:14px;font-weight:bold;" id="valorPagoLegenda">R$ 0,00</span>
+</p>
 
-<a href="#" class="doc-item">
-🖼️ Foto_Terreno_LoteA.jpg
-</a>
-
-<a href="#" class="doc-item">
-🖼️ Planta_Baixa.png
-</a>
+<p>
+📊 <strong>Valor restante:</strong>
+<span style="color:#ef4444;font-size:14px;font-weight:bold;" id="valorRestanteLegenda">R$ 0,00</span>
+</p>
 
 </div>
 
 </div>
+</div>
 
-<!-- OBSERVAÇÕES -->
+<!-- ========== TAB DOCUMENTOS ========== -->
+<div id="tab-documentos" class="tab-content">
 
+<h3>📁 Documentos e Fotos do Terreno</h3>
+
+<!-- Área para adicionar link (só para admin) -->
+<div id="uploadAreaAdmin" style="display:none; background:#f0f0f0; padding:20px; border-radius:10px; margin-bottom:20px;">
+    <h4>📤 Adicionar novo arquivo</h4>
+    
+    <div class="form-group">
+        <label>🔗 Link do Google Drive</label>
+        <input type="url" id="linkDocumento" placeholder="https://drive.google.com/file/d/.../view" style="width:100%;">
+        <small>Cole o link de compartilhamento do Google Drive</small>
+    </div>
+    
+    <div class="form-group">
+        <label>📝 Nome do arquivo (opcional)</label>
+        <input type="text" id="nomeDocumento" placeholder="Ex: Contrato Final, Foto Lote A">
+    </div>
+    
+    <div class="form-group">
+        <label>🏷️ Tipo</label>
+        <select id="tipoDocumento">
+            <option value="documento">📄 Documento</option>
+            <option value="imagem">🖼️ Foto/Imagem</option>
+            <option value="video">🎥 Vídeo</option>
+        </select>
+    </div>
+    
+    <button onclick="adicionarDocumentoLink()">➕ Adicionar Documento</button>
+</div>
+
+<!-- Lista de documentos -->
+<h4>📄 Documentos Disponíveis</h4>
+<div id="listaDocumentos" class="docs-grid">
+    <div style="text-align:center; padding:20px;">Carregando documentos...</div>
+</div>
+
+</div>
+
+<!-- ========== TAB OBSERVAÇÕES ========== -->
 <div id="tab-observacoes" class="tab-content">
 
 <h3>💬 Observações do Grupo</h3>
 
-<div id="listaObservacoes"
-style="margin-bottom:20px;max-height:400px;overflow-y:auto;">
-</div>
+<div id="listaObservacoes" style="margin-bottom:20px;max-height:400px;overflow-y:auto;"></div>
 
 <form id="formObservacao">
-
-<div class="form-group">
-
-<textarea id="novaObservacao"
-rows="3"
-placeholder="Digite sua observação aqui...">
-</textarea>
-
-</div>
-
-<button type="submit">
-Adicionar Observação
-</button>
-
+    <div class="form-group">
+        <textarea id="novaObservacao" rows="3" placeholder="Digite sua observação aqui..."></textarea>
+    </div>
+    <button type="submit">Adicionar Observação</button>
 </form>
 
 </div>
 
-<!-- RECIBOS -->
-
+<!-- ========== TAB RECIBOS ========== -->
 <div id="tab-recibos" class="tab-content">
 
 <h3>🧾 Recibos de Pagamentos Confirmados</h3>
@@ -645,30 +620,71 @@ Adicionar Observação
 
 </div>
 
-<!-- ADMIN -->
-
+<!-- ========== TAB ADMIN ========== -->
 <div id="tab-admin" class="tab-content">
 
 <h3>⚙️ Administração</h3>
 
-<button onclick="exportarDados()">
-📥 Exportar Dados
+<!-- CAMPO PARA NÚMERO DO VICTOR -->
+<div style="background:#f0f0f0; padding:15px; border-radius:10px; margin-bottom:20px;">
+    <label style="font-weight:bold;">📱 Número do Victor (WhatsApp)</label>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+        <input type="tel" id="numeroVictorInput" 
+               placeholder="Ex: 5511988887777" 
+               style="flex:1; min-width:200px;">
+        <button onclick="salvarNumeroVictor()" style="padding:10px 20px;">💾 Salvar Número</button>
+    </div>
+    <small style="color:#666;">Formato: 55 + DDD + número (ex: 5511988887777)</small>
+</div>
+
+<div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
+    <button onclick="exportarDados()" style="padding: 12px 25px;">
+        📥 Exportar Dados
+    </button>
+
+    <button onclick="importarDados()" style="padding: 12px 25px;">
+        📤 Importar Dados
+    </button>
+</div>
+
+<input type="file" id="importFile" accept=".json" style="display:none;" onchange="processarImportacao(event)">
+
+</div>
+
+<div style="height: 30px;"></div>
+
+<!-- ========== TABS (BOTÕES) ========== -->
+<div class="tabs">
+
+<button class="tab-btn active" onclick="switchTab('pagamentos')">
+💰 Pagamentos
 </button>
 
-<button onclick="importarDados()">
-📤 Importar Dados
+<button class="tab-btn" id="btnAdicionarTab" onclick="switchTab('adicionar')">
+➕ Adicionar
 </button>
 
-<button onclick="resetarDados()"
-style="background:#ef4444;">
-⚠️ Resetar Tudo
+<button class="tab-btn" onclick="switchTab('cronograma')">
+📅 Cronograma
 </button>
 
-<input type="file"
-id="importFile"
-accept=".json"
-style="display:none;"
-onchange="processarImportacao(event)">
+<button class="tab-btn" onclick="switchTab('documentos')">
+📁 Arquivos/Fotos
+</button>
+
+<button class="tab-btn" onclick="switchTab('observacoes')">
+📝 Observações
+</button>
+
+<button class="tab-btn" onclick="switchTab('recibos')">
+🧾 Recibos
+</button>
+
+<div id="adminTab" style="display:none;">
+<button class="tab-btn" onclick="switchTab('admin')">
+⚙️ Admin
+</button>
+</div>
 
 </div>
 
@@ -677,6 +693,175 @@ onchange="processarImportacao(event)">
 
 <script>
 
+let numeroVictor = localStorage.getItem('numeroVictor') || "5511999999999";
+
+// CONFIGURAÇÃO SUPABASE
+const SUPABASE_URL = "https://vpumxmewnmnoabhyprwu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_zQ2XLFy50ymCQTasNJBYNg_bcM1Nax9";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ========== FUNÇÕES ==========
+function salvarNumeroVictor() {
+    const input = document.getElementById('numeroVictorInput');
+    if(input && input.value) {
+        numeroVictor = input.value;
+        localStorage.setItem('numeroVictor', numeroVictor);
+        alert('✅ Número do Victor salvo com sucesso!');
+    } else {
+        alert('❌ Digite um número válido');
+    }
+}
+
+async function salvarPagamentoNoSupabase(pagamento) {
+    try {
+        const { data, error } = await sb
+            .from('pagamentos')
+            .insert([pagamento]);
+        
+        if(error) {
+            console.error("Erro ao salvar:", error);
+        } else {
+            console.log("✅ Pagamento salvo na nuvem!");
+        }
+    } catch(e) {
+        console.error("Erro de conexão:", e);
+    }
+}
+
+function carregarNumeroVictor() {
+    const input = document.getElementById('numeroVictorInput');
+    if(input) {
+        input.value = numeroVictor;
+    }
+}
+
+function notificarVictor(pagamentoValor, pagamentoObs) {
+
+const mensagem = 
+`🆕 NOVO PAGAMENTO REGISTRADO!
+
+💰 Valor: R$ ${pagamentoValor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
+👤 Registrado por: ${usuarioAtual || 'Admin'}
+📝 Descrição: ${pagamentoObs || 'Sem descrição'}
+📅 Data: ${new Date().toLocaleDateString('pt-BR')}
+
+⚠️ Aguardando sua confirmação no sistema.
+Acesse o sistema para confirmar o recebimento.`;
+
+const mensagemCodificada = encodeURIComponent(mensagem);
+window.open(`https://api.whatsapp.com/send?phone=${numeroVictor}&text=${mensagemCodificada}`, '_blank');
+}
+
+// ========== FUNÇÕES PARA DOCUMENTOS ==========
+let documentos = [];
+
+function carregarDocumentos() {
+    const saved = localStorage.getItem('terreno_documentos');
+    if(saved) {
+        documentos = JSON.parse(saved);
+    } else {
+        documentos = [
+            { 
+                id: 1, 
+                nome: "Contrato do Terreno", 
+                tipo: "documento", 
+                link: "https://drive.google.com/file/d/1T3tId5802KtocV3yFTaLD6DnAX2Ig6Oy/view?usp=sharing",
+                data: new Date().toLocaleDateString('pt-BR')
+            }
+        ];
+    }
+    atualizarListaDocumentos();
+}
+
+function salvarDocumentos() {
+    localStorage.setItem('terreno_documentos', JSON.stringify(documentos));
+}
+
+function adicionarDocumentoLink() {
+    if(!ehAdmin) return;
+    
+    const linkInput = document.getElementById('linkDocumento');
+    const nomeInput = document.getElementById('nomeDocumento');
+    const tipoSelect = document.getElementById('tipoDocumento');
+    
+    const link = linkInput.value.trim();
+    if(!link) {
+        alert('❌ Cole o link do Google Drive primeiro!');
+        return;
+    }
+    
+    let nome = nomeInput.value.trim();
+    if(!nome) {
+        nome = `Documento ${documentos.length + 1}`;
+    }
+    
+    const tipo = tipoSelect.value;
+    
+    const novoDoc = {
+        id: Date.now(),
+        nome: nome,
+        tipo: tipo,
+        link: link,
+        data: new Date().toLocaleDateString('pt-BR')
+    };
+    
+    documentos.push(novoDoc);
+    salvarDocumentos();
+    atualizarListaDocumentos();
+    
+    linkInput.value = '';
+    nomeInput.value = '';
+    tipoSelect.value = 'documento';
+    
+    alert('✅ Documento adicionado com sucesso!');
+}
+
+function removerDocumento(id) {
+    if(!ehAdmin) return;
+    if(confirm('Remover este documento?')) {
+        documentos = documentos.filter(d => d.id !== id);
+        salvarDocumentos();
+        atualizarListaDocumentos();
+        alert('✅ Documento removido!');
+    }
+}
+
+function atualizarListaDocumentos() {
+    const container = document.getElementById('listaDocumentos');
+    if(!container) return;
+    
+    container.innerHTML = '';
+    
+    if(documentos.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px;">Nenhum documento cadastrado.</div>';
+        return;
+    }
+    
+    documentos.forEach(doc => {
+        const div = document.createElement('div');
+        div.className = 'doc-item';
+        
+        let icone = '📄';
+        if(doc.tipo === 'imagem') icone = '🖼️';
+        else if(doc.tipo === 'video') icone = '🎥';
+        
+        div.innerHTML = `
+            <div style="font-size:32px;">${icone}</div>
+            <div style="font-weight:bold; word-break:break-word;">${doc.nome}</div>
+            <small style="color:#666;">📅 ${doc.data}</small>
+            ${ehAdmin ? `<button onclick="removerDocumento(${doc.id})" style="margin-top:10px; background:#ef4444; padding:5px 10px; font-size:12px;">🗑️ Remover</button>` : ''}
+        `;
+        
+        div.onclick = (e) => {
+            if(e.target.tagName === 'BUTTON') return;
+            if(doc.link) window.open(doc.link, '_blank');
+        };
+        
+        container.appendChild(div);
+    });
+}
+
+// ========== FUNÇÕES PRINCIPAIS ==========
 const META_TOTAL = 100000;
 const VALOR_PARCELA = 3000;
 
@@ -732,107 +917,63 @@ observacao: pagamento.obs
 
 function carregarDados(){
 
-const saved = localStorage.getItem('terreno_pagamentos');
-
-if(saved){
-
-pagamentos = JSON.parse(saved);
-
-}else{
-
-pagamentos = [
-
-{
-id:1,
-data:'2026-04-06',
-valor:5000,
-obs:'Itaú para Banco do Brasil - Lázaro',
-usuario:'Lázaro',
-confirmado:true
-},
-
-{
-id:2,
-data:'2026-04-06',
-valor:3620,
-obs:'Rosa comprou celular para Victor',
-usuario:'Victor Hugo',
-confirmado:true
-}
-];
-}
-
-const savedObs = localStorage.getItem('terreno_observacoes');
-
-if(savedObs){
-
-observacoes = JSON.parse(savedObs);
-
-}else{
-
-observacoes = [
-
-{
-id:1,
-texto:'🎉 Sistema iniciado!',
-data:new Date().toISOString().split('T')[0],
-usuario:'Sistema'
-}
-];
-}
-
-const savedRecibos =
-localStorage.getItem('terreno_recibos');
-
-if(savedRecibos){
-recibos = JSON.parse(savedRecibos);
-}
-
-gerarRecibosAntigos();
+    // Carregar do localStorage primeiro
+    const saved = localStorage.getItem('terreno_pagamentos');
+    if(saved) pagamentos = JSON.parse(saved);
+    
+    const savedObs = localStorage.getItem('terreno_observacoes');
+    if(savedObs) observacoes = JSON.parse(savedObs);
+    
+    const savedRecibos = localStorage.getItem('terreno_recibos');
+    if(savedRecibos) recibos = JSON.parse(savedRecibos);
+    
+    gerarRecibosAntigos();
+    
+    carregarDoSupabase();
 }
 
 function salvarDados(){
 
-localStorage.setItem(
-'terreno_pagamentos',
-JSON.stringify(pagamentos)
-);
+    localStorage.setItem('terreno_pagamentos', JSON.stringify(pagamentos));
+    localStorage.setItem('terreno_observacoes', JSON.stringify(observacoes));
+    localStorage.setItem('terreno_recibos', JSON.stringify(recibos));
 
-localStorage.setItem(
-'terreno_observacoes',
-JSON.stringify(observacoes)
-);
-
-localStorage.setItem(
-'terreno_recibos',
-JSON.stringify(recibos)
-);
-
-atualizarDashboard();
-atualizarObservacoes();
-atualizarRecibos();
+    atualizarDashboard();
+    atualizarObservacoes();
+    atualizarRecibos();
+    
+    salvarTodosNoSupabase();
 }
 
-function calcularTotalPago(){
-
-return pagamentos
-.filter(p => p.confirmado === true)
-.reduce((total,p) => total + p.valor,0);
+async function salvarTodosNoSupabase() {
+    try {
+        for(const p of pagamentos) {
+            await sb.from('pagamentos').upsert(p, { onConflict: 'id' });
+        }
+        
+        for(const o of observacoes) {
+            await sb.from('observacoes').upsert(o, { onConflict: 'id' });
+        }
+        
+        console.log("✅ Dados salvos no Supabase!");
+    } catch(e) {
+        console.error("Erro:", e);
+    }
 }
 
-function calcularParcelasPagas(){
+function calcularTotalPago() {
+    return pagamentos.filter(p => p.confirmado === true).reduce((total, p) => total + p.valor, 0);
+}
 
-return Math.floor(calcularTotalPago() / VALOR_PARCELA);
+function calcularParcelasPagas() {
+    return Math.floor(calcularTotalPago() / VALOR_PARCELA);
 }
 
 function atualizarDashboard(){
 
 const totalPago = calcularTotalPago();
-
 const saldoDevedor = META_TOTAL - totalPago;
-
 const percentual = (totalPago / META_TOTAL) * 100;
-
 const parcelasPagas = calcularParcelasPagas();
 
 document.getElementById('totalPago').innerHTML =
@@ -850,6 +991,9 @@ document.getElementById('progressoFill');
 progressFill.style.width = `${percentual}%`;
 
 progressFill.innerHTML = `${percentual.toFixed(1)}%`;
+
+progressFill.style.fontSize = "10px";
+progressFill.style.fontWeight = "bold";
 
 document.getElementById('valorPagoLegenda').innerHTML =
 `R$ ${totalPago.toLocaleString('pt-BR',{minimumFractionDigits:2})}`;
@@ -918,21 +1062,36 @@ const dataHist = new Date(p.data)
 .replace('/2027','/27');
 
 row.innerHTML = `
-<td>${dataHist}</td>
 
-<td>
+<td style="min-width:60px;">
+${dataHist}
+</td>
+
+<td style="min-width:85px;font-weight:bold;">
 R$ ${p.valor.toLocaleString('pt-BR',{
 minimumFractionDigits:2
 })}
 </td>
 
-<td>${p.obs || '-'}</td>
+<td style="
+min-width:120px;
+max-width:180px;
+font-size:11px;
+">
+${p.obs || '-'}
+</td>
 
-<td>${p.usuario}</td>
+<td style="min-width:70px;">
+${p.usuario}
+</td>
 
-<td>${status}</td>
+<td style="min-width:90px;">
+${status}
+</td>
 
-<td>${botoes}</td>
+<td style="min-width:90px;">
+${botoes}
+</td>
 `;
 });
 }
@@ -1004,20 +1163,29 @@ const novoId = pagamentos.length > 0
 ? Math.max(...pagamentos.map(p=>p.id)) + 1
 : 1;
 
-pagamentos.push({
+const novoPagamento = {
 id:novoId,
 data:data,
 valor:valorNumerico,
 obs:obs,
 usuario:usuarioAtual,
 confirmado:false
-});
+};
+
+pagamentos.push(novoPagamento);
 
 salvarDados();
 
+// Salvar no Supabase
+salvarPagamentoNoSupabase(novoPagamento);
+
 adicionarObservacaoAuto(
-`💰 Pagamento de R$ ${valorNumerico.toLocaleString('pt-BR')} registrado por ${usuarioAtual}.`
+`💰 Pagamento de R$ ${valorNumerico.toLocaleString('pt-BR')} registrado por ${usuarioAtual}. Aguardando confirmação.`
 );
+
+notificarVictor(valorNumerico, obs);
+
+alert('✅ Pagamento registrado! Victor foi notificado via WhatsApp.');
 }
 
 function confirmarPagamento(id){
@@ -1081,7 +1249,7 @@ salvarDados();
 
 function removerPagamento(id){
 
-if(confirm('Remover?')){
+if(confirm('Remover este pagamento?')){
 
 pagamentos =
 pagamentos.filter(p => p.id !== id);
@@ -1090,11 +1258,28 @@ salvarDados();
 }
 }
 
+function excluirObservacao(id){
+
+if(!ehAdmin) {
+alert("❌ Apenas o administrador pode excluir observações!");
+return;
+}
+
+if(confirm('Remover esta observação?')){
+
+observacoes = observacoes.filter(obs => obs.id !== id);
+
+salvarDados();
+
+atualizarObservacoes();
+
+alert('✅ Observação removida!');
+}
+}
+
 function adicionarObservacao(texto,auto=false){
 
-const novoId = observacoes.length > 0
-? Math.max(...observacoes.map(o=>o.id)) + 1
-: 1;
+const novoId = Date.now();
 
 observacoes.unshift({
 id:novoId,
@@ -1128,15 +1313,18 @@ padding:15px;
 border-radius:10px;
 margin-bottom:10px;
 border-left:4px solid #667eea;
+position:relative;
 `;
 
 div.innerHTML = `
-<div style="display:flex;justify-content:space-between;">
+<div style="display:flex;justify-content:space-between; align-items:center;">
+<div>
 <strong>${obs.usuario}</strong>
-<small>${obs.data}</small>
+<small style="margin-left:10px;">${obs.data}</small>
 </div>
-
-<div>${obs.texto}</div>
+${ehAdmin ? `<button class="btn-excluir-obs" onclick="excluirObservacao(${obs.id})" style="font-size:10px;">🗑️</button>` : ''}
+</div>
+<div style="margin-top:8px;">${obs.texto}</div>
 `;
 
 container.appendChild(div);
@@ -1148,12 +1336,14 @@ function atualizarRecibos(){
 const container =
 document.getElementById('listaRecibos');
 
+if(!container) return;
+
 container.innerHTML = '';
 
 if(recibos.length === 0){
 
 container.innerHTML =
-`<div style="padding:20px;">
+`<div style="padding:20px; text-align:center;">
 Nenhum recibo emitido ainda.
 </div>`;
 
@@ -1222,11 +1412,7 @@ ${recibo.observacao || '-'}
 
 </div>
 
-${
-usuarioAtual === 'Valtail' || usuarioAtual === 'Débora'
-?
-`
-<div style="display:flex;gap:10px;flex-wrap:wrap;">
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
 
 <button class="btn-imprimir"
 onclick="imprimirRecibo(${recibo.id})">
@@ -1237,22 +1423,19 @@ onclick="imprimirRecibo(${recibo.id})">
 
 <button
 style="
-margin-top:20px;
 background:#25d366;
 color:white;
+padding:12px 30px;
+border-radius:8px;
 "
 
-onclick="enviarWhatsApp(${recibo.id})">
+onclick="enviarWhatsAppRecibo(${recibo.id})">
 
 📲 Enviar WhatsApp
 
 </button>
 
 </div>
-`
-:
-''
-}
 
 `;
 
@@ -1260,41 +1443,29 @@ container.appendChild(div);
 });
 }
 
-function enviarWhatsApp(id){
+function enviarWhatsAppRecibo(id) {
 
-const recibo =
-recibos.find(r => r.id === id);
+const recibo = recibos.find(r => r.id === id);
 
 if(!recibo) return;
 
-const mensagem = encodeURIComponent(
-
+const mensagem = 
 `🧾 RECIBO DE PAGAMENTO
 
-📅 Data: ${recibo.data}
-⏰ Horário: ${recibo.hora}
+📅 Data: ${recibo.data} - ⏰ Horário: ${recibo.hora}
 
-💰 Valor:
-R$ ${recibo.valor.toLocaleString('pt-BR',{
-minimumFractionDigits:2
-})}
+💰 Valor: R$ ${recibo.valor.toLocaleString('pt-BR', {minimumFractionDigits: 2})}
 
-👤 Vendedor:
-Victor Hugo
+👤 Vendedor: Victor Hugo
+🤝 Compradores: Valtail e Débora Melo
 
-🤝 Compradores:
-Valtail e Débora Melo
+📝 Referência: ${recibo.observacao || '-'}
 
-📝 Referência:
-${recibo.observacao || '-'}
+✅ Victor Hugo confirma oficialmente o recebimento do valor acima.`;
 
-✅ Victor Hugo confirma oficialmente o recebimento do valor acima em sua conta bancária.`
-);
-
-window.open(
-`https://wa.me/?text=${mensagem}`,
-'_blank'
-);
+navigator.clipboard.writeText(mensagem);
+alert('✅ Mensagem copiada! Vá ao WhatsApp, escolha o contato e cole (Ctrl+V).');
+window.open('https://web.whatsapp.com', '_blank');
 }
 
 function imprimirRecibo(id){
@@ -1333,38 +1504,8 @@ border:2px solid #10b981;
 border-radius:15px;
 padding:30px;
 }
-.tabs{
-    position:fixed;
-    bottom:0;
-    left:0;
-    width:100%;
-    background:white;
-    padding:12px;
-    display:flex;
-    gap:10px;
-    overflow-x:auto;
-    z-index:999;
-    box-shadow:0 -5px 20px rgba(0,0,0,0.12);
-.tab-content{
-    margin-bottom:40px;
-}
 
-.tabs::-webkit-scrollbar{
-    display:none;
-}
-
-.tab-btn{
-    min-width:max-content;
-    white-space:nowrap;
-    flex-shrink:0;
-}
-
-/* espaço para o menu inferior não cobrir conteúdo */
-.container{
-    padding-bottom:110px;
-}
 </style>
-
 </head>
 
 <body>
@@ -1422,7 +1563,8 @@ function exportarDados(){
 const dataStr = JSON.stringify({
 pagamentos,
 observacoes,
-recibos
+recibos,
+documentos
 },null,2);
 
 const dataUri =
@@ -1456,21 +1598,15 @@ const d = JSON.parse(e.target.result);
 pagamentos = d.pagamentos || [];
 observacoes = d.observacoes || [];
 recibos = d.recibos || [];
+documentos = d.documentos || [];
 
 salvarDados();
+salvarDocumentos();
+
+alert('✅ Dados importados com sucesso!');
 };
 
 reader.readAsText(file);
-}
-
-function resetarDados(){
-
-if(confirm('Resetar?')){
-
-localStorage.clear();
-
-location.reload();
-}
 }
 
 function fazerLogin(){
@@ -1535,6 +1671,9 @@ if(ehAdmin){
 document.getElementById('adminBadge').style.display = 'block';
 
 document.getElementById('adminTab').style.display = 'block';
+
+const uploadArea = document.getElementById('uploadAreaAdmin');
+if(uploadArea) uploadArea.style.display = 'block';
 }
 
 if(ehVendedor){
@@ -1543,6 +1682,10 @@ document.getElementById('vendedorBadge').style.display = 'block';
 }
 
 carregarDados();
+
+carregarDocumentos();
+
+carregarNumeroVictor();
 
 atualizarDashboard();
 
@@ -1557,20 +1700,36 @@ alert('❌ Senha incorreta!');
 }
 
 function deslogar(){
-
-location.reload();
+    location.reload();
 }
 
 function switchTab(tabName){
 
 document.querySelectorAll('.tab-content')
-.forEach(tab => tab.classList.remove('active'));
+.forEach(tab => {
+tab.classList.remove('active');
+});
 
 document.querySelectorAll('.tab-btn')
-.forEach(btn => btn.classList.remove('active'));
+.forEach(btn => {
+btn.classList.remove('active');
+});
 
-document.getElementById(`tab-${tabName}`)
-.classList.add('active');
+const tabSelecionada =
+document.getElementById(`tab-${tabName}`);
+
+if(tabSelecionada){
+tabSelecionada.classList.add('active');
+}
+
+const botaoSelecionado =
+document.querySelector(
+`button[onclick="switchTab('${tabName}')"]`
+);
+
+if(botaoSelecionado){
+botaoSelecionado.classList.add('active');
+}
 }
 
 document.getElementById('formPagamento')
@@ -1625,50 +1784,42 @@ input.type = 'password';
 }
 }
 
+// FUNÇÃO PARA CARREGAR DO SUPABASE
+async function carregarDoSupabase() {
+    try {
+        console.log("Carregando do Supabase...");
+        
+        const { data: pag, error: errPag } = await sb
+            .from('pagamentos')
+            .select('*');
+        
+        if(errPag) console.error("Erro:", errPag);
+        if(pag && pag.length > 0) {
+            pagamentos = pag;
+            console.log(`${pag.length} pagamentos carregados`);
+        }
+        
+        const { data: obs, error: errObs } = await sb
+            .from('observacoes')
+            .select('*');
+        
+        if(obs && obs.length > 0) {
+            observacoes = obs;
+        }
+        
+        atualizarDashboard();
+        atualizarObservacoes();
+        
+    } catch(e) {
+        console.error("Erro de conexão:", e);
+    }
+}
+
 </script>
 
-<div style="height:40px;"></div>
-
-<div class="tabs">
-
-<button class="tab-btn active"
-onclick="switchTab('pagamentos')">
-💰 Pagamentos
-</button>
-
-<button class="tab-btn"
-id="btnAdicionarTab"
-onclick="switchTab('adicionar')">
-➕ Adicionar
-</button>
-
-<button class="tab-btn"
-onclick="switchTab('cronograma')">
-📅 Cronograma
-</button>
-
-<button class="tab-btn"
-onclick="switchTab('documentos')">
-📁 Arquivos/Fotos
-</button>
-
-<button class="tab-btn"
-onclick="switchTab('observacoes')">
-📝 Observações
-</button>
-
-<button class="tab-btn"
-onclick="switchTab('recibos')">
-🧾 Recibos
-</button>
-
-<div id="adminTab" style="display:none;">
-<button class="tab-btn"
-onclick="switchTab('admin')">
-⚙️ Admin
-</button>
 </div>
 
 </div>
+
 </body>
 </html>
