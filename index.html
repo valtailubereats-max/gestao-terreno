@@ -1148,85 +1148,70 @@ carrossel.appendChild(div);
 }
 }
 
-function adicionarPagamento(data,valor,obs){
+function adicionarPagamento(data, valor, obs) {
 
-if(!ehAdmin){
+    if (!ehAdmin) {
+        alert("Apenas administradores podem registrar pagamentos!");
+        return;
+    }
 
-alert("Apenas administradores podem registrar pagamentos!");
+    const valorNumerico = parseFloat(valor);
+    const novoId = pagamentos.length > 0 ? Math.max(...pagamentos.map(p => p.id)) + 1 : 1;
 
-return;
+    const novoPagamento = {
+        id: novoId,
+        data: data,
+        valor: valorNumerico,
+        obs: obs,
+        usuario: usuarioAtual,
+        confirmado: false
+    };
+
+    pagamentos.push(novoPagamento);
+    salvarDados();
+    salvarPagamentoNoSupabase(novoPagamento);
+
+    adicionarObservacaoAuto(`💰 Pagamento de R$ ${valorNumerico.toLocaleString('pt-BR')} registrado por ${usuarioAtual}. Aguardando confirmação.`);
+    notificarVictor(valorNumerico, obs);
+
+    alert('✅ Pagamento registrado! Victor foi notificado via WhatsApp.');
+
+    // 🔻 FORÇAR RECARREGAMENTO DA TELA 🔻
+    setTimeout(function() {
+        location.reload();
+    }, 1000);
 }
 
-const valorNumerico = parseFloat(valor);
+function confirmarPagamento(id) {
 
-const novoId = pagamentos.length > 0
-? Math.max(...pagamentos.map(p=>p.id)) + 1
-: 1;
+    const pagamento = pagamentos.find(p => p.id === id);
 
-const novoPagamento = {
-id:novoId,
-data:data,
-valor:valorNumerico,
-obs:obs,
-usuario:usuarioAtual,
-confirmado:false
-};
+    if (pagamento) {
 
-pagamentos.push(novoPagamento);
+        pagamento.confirmado = true;
 
-salvarDados();
+        const agora = new Date();
 
-// Salvar no Supabase
-salvarPagamentoNoSupabase(novoPagamento);
+        const recibo = {
+            id: Date.now(),
+            valor: pagamento.valor,
+            data: agora.toLocaleDateString('pt-BR'),
+            hora: agora.toLocaleTimeString('pt-BR'),
+            vendedor: 'Victor Hugo',
+            compradores: 'Valtail e Débora Melo',
+            observacao: pagamento.obs
+        };
 
-adicionarObservacaoAuto(
-`💰 Pagamento de R$ ${valorNumerico.toLocaleString('pt-BR')} registrado por ${usuarioAtual}. Aguardando confirmação.`
-);
+        recibos.unshift(recibo);
+        salvarDados();
+        adicionarObservacaoAuto(`✅ Pagamento de R$ ${pagamento.valor.toLocaleString('pt-BR')} CONFIRMADO por Victor Hugo.`);
+        alert('✅ Pagamento confirmado e recibo emitido!');
 
-notificarVictor(valorNumerico, obs);
-
-alert('✅ Pagamento registrado! Victor foi notificado via WhatsApp.');
-recarregarDados();
-}
-
-function confirmarPagamento(id){
-
-const pagamento = pagamentos.find(p => p.id === id);
-
-if(pagamento){
-
-pagamento.confirmado = true;
-
-const agora = new Date();
-
-const recibo = {
-
-id:Date.now(),
-
-valor:pagamento.valor,
-
-data:agora.toLocaleDateString('pt-BR'),
-
-hora:agora.toLocaleTimeString('pt-BR'),
-
-vendedor:'Victor Hugo',
-
-compradores:'Valtail e Débora Melo',
-
-observacao:pagamento.obs
-};
-
-recibos.unshift(recibo);
-
-salvarDados();
-
-adicionarObservacaoAuto(
-`✅ Pagamento de R$ ${pagamento.valor.toLocaleString('pt-BR')} CONFIRMADO por Victor Hugo.`
-);
-
-alert('✅ Pagamento confirmado e recibo emitido!');
-recarregarDados();
-}
+        // 🔻 FORÇAR RECARREGAMENTO DA TELA 🔻
+        setTimeout(function() {
+            location.reload();
+        }, 1000);
+    }
 }
 
 function editarPagamento(id){
