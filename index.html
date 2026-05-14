@@ -1704,6 +1704,8 @@ atualizarObservacoes();
 
 atualizarRecibos();
 
+iniciarAtualizacaoAutomatica();
+
 }else{
 
 alert('❌ Senha incorreta!');
@@ -1809,6 +1811,46 @@ input.type = 'text';
 input.type = 'password';
 }
 }
+
+// Atualização automática leve (sem recarregar a página)
+function iniciarAtualizacaoAutomatica() {
+    setInterval(async () => {
+        console.log("🔄 Buscando novos dados...");
+        
+        // Buscar pagamentos atualizados
+        const { data: pag } = await sb
+            .from('pagamentos')
+            .select('*')
+            .order('data', { ascending: false });
+        
+        if(pag && pag.length > 0) {
+            // Comparar se houve mudança
+            if(pagamentos.length !== pag.length) {
+                pagamentos.length = 0;
+                for(let p of pag) pagamentos.push(p);
+                atualizarDashboard();
+                console.log("✅ Pagamentos atualizados!");
+            }
+        }
+        
+        // Buscar observações atualizadas
+        const { data: obs } = await sb
+            .from('observacoes')
+            .select('*')
+            .order('data', { ascending: false });
+        
+        if(obs && obs.length > 0) {
+            if(observacoes.length !== obs.length) {
+                observacoes.length = 0;
+                for(let o of obs) observacoes.push(o);
+                atualizarObservacoes();
+                console.log("✅ Observações atualizadas!");
+            }
+        }
+        
+    }, 30000); // 30 segundos
+}
+
 // FUNÇÃO PARA RECARREGAR DADOS (APENAS UMA VEZ)
 async function recarregarDados() {
     console.log("🔄 Recarregando dados...");
