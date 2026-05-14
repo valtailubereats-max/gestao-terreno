@@ -1620,94 +1620,35 @@ alert('✅ Dados importados com sucesso!');
 reader.readAsText(file);
 }
 
-function fazerLogin(){
+function fazerLogin() {
 
-const usuario =
-document.getElementById('usuarioSelect').value;
+    const usuario = document.getElementById('usuarioSelect').value;
+    const senha = document.getElementById('senhaInput').value;
 
-const senha =
-document.getElementById('senhaInput').value;
+    if (SENHAS[usuario] === senha) {
 
-if(SENHAS[usuario] === senha){
+        // ... todo o código existente de login ...
+        // (configurar usuário, mostrar app, carregar dados, etc.)
 
-usuarioAtual = usuario;
+        carregarDados();
+        carregarDocumentos();
+        carregarNumeroVictor();
 
-ehAdmin = (usuario === 'Valtail');
+        atualizarDashboard();
+        atualizarObservacoes();
+        atualizarRecibos();
 
-ehVendedor = (usuario === 'Victor Hugo');
+        // 🔻 ADICIONE ESTAS LINHAS AQUI (no final) 🔻
+        // Atualiza automaticamente a cada 30 segundos
+        setInterval(() => {
+            recarregarDados();
+            console.log("🔄 Atualização automática");
+        }, 30000);
+        // 🔺 ATÉ AQUI 🔺
 
-document.getElementById('loginSection').style.display = 'none';
-
-document.getElementById('appSection').style.display = 'block';
-
-document.getElementById('usuarioLogado').innerHTML =
-`👋 Olá, ${usuario}!`;
-
-const btnSalvar =
-document.getElementById('btnSalvarPagamento');
-
-const msgAdmin =
-document.getElementById('adminOnlyMsg');
-
-const btnAdicionarTab =
-document.getElementById('btnAdicionarTab');
-
-if(ehAdmin){
-
-btnSalvar.disabled = false;
-
-btnSalvar.style.opacity = "1";
-
-btnSalvar.style.cursor = "pointer";
-
-msgAdmin.style.display = "none";
-
-btnAdicionarTab.style.display = "inline-block";
-
-}else{
-
-btnSalvar.disabled = true;
-
-btnSalvar.style.opacity = "0.5";
-
-btnSalvar.style.cursor = "not-allowed";
-
-msgAdmin.style.display = "block";
-
-btnAdicionarTab.style.display = "none";
-}
-
-if(ehAdmin){
-
-document.getElementById('adminBadge').style.display = 'block';
-
-document.getElementById('adminTab').style.display = 'block';
-
-const uploadArea = document.getElementById('uploadAreaAdmin');
-if(uploadArea) uploadArea.style.display = 'block';
-}
-
-if(ehVendedor){
-
-document.getElementById('vendedorBadge').style.display = 'block';
-}
-
-carregarDados();
-
-carregarDocumentos();
-
-carregarNumeroVictor();
-
-atualizarDashboard();
-
-atualizarObservacoes();
-
-atualizarRecibos();
-
-}else{
-
-alert('❌ Senha incorreta!');
-}
+    } else {
+        alert('❌ Senha incorreta!');
+    }
 }
 
 function deslogar() {
@@ -1811,35 +1752,30 @@ input.type = 'password';
 }
 // FUNÇÃO PARA RECARREGAR DADOS (APENAS UMA VEZ)
 async function recarregarDados() {
-    console.log("🔄 Recarregando dados...");
+    console.log("🔄 Atualizando dados...");
     
-    // Forçar recarregamento do Supabase
+    // Buscar pagamentos atualizados
     const { data: pag, error: errPag } = await sb
         .from('pagamentos')
         .select('*')
         .order('data', { ascending: false });
     
     if(pag && pag.length > 0) {
-        pagamentos = pag;
-        console.log(`${pag.length} pagamentos recarregados`);
+        pagamentos.length = 0;
+        for(let p of pag) pagamentos.push(p);
+        console.log(`${pag.length} pagamentos atualizados`);
     }
     
+    // Buscar observações atualizadas
     const { data: obs, error: errObs } = await sb
         .from('observacoes')
         .select('*')
         .order('data', { ascending: false });
     
     if(obs && obs.length > 0) {
-        observacoes = obs;
-    }
-    
-    // Atualizar recibos também
-    const { data: rec, error: errRec } = await sb
-        .from('recibos')
-        .select('*');
-    
-    if(rec && rec.length > 0) {
-        recibos = rec;
+        observacoes.length = 0;
+        for(let o of obs) observacoes.push(o);
+        console.log(`${obs.length} observações atualizadas`);
     }
     
     // Atualizar a tela
@@ -1847,7 +1783,17 @@ async function recarregarDados() {
     atualizarObservacoes();
     atualizarRecibos();
     
-    console.log("✅ Dados atualizados!");
+    // Mostrar feedback visual
+    const syncStatus = document.getElementById('syncStatus');
+    if(syncStatus) {
+        syncStatus.innerHTML = '✅ Atualizado!';
+        syncStatus.style.background = '#10b981';
+        setTimeout(() => {
+            syncStatus.style.opacity = '0.5';
+        }, 2000);
+    }
+    
+    alert('✅ Dados atualizados!');
 }
 
 // FUNÇÃO PARA CARREGAR DO SUPABASE
