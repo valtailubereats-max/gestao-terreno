@@ -751,16 +751,24 @@ window.open(`https://api.whatsapp.com/send?phone=${numeroVictor}&text=${mensagem
 let documentos = [];
 
 async function carregarDocumentos() {
+    console.log("Carregando documentos...");
+    
     const { data: docs, error } = await sb.from('documentos').select('*');
+    
+    if(error) {
+        console.error("Erro ao carregar:", error);
+    }
+    
+    console.log("Documentos do Supabase:", docs);
     
     if(docs && docs.length > 0) {
         documentos = docs;
         console.log(`${docs.length} documentos carregados`);
     } else {
-        const saved = localStorage.getItem('terreno_documentos');
-        if(saved) documentos = JSON.parse(saved);
-        else documentos = [];
+        console.log("Nenhum documento no Supabase");
+        documentos = [];
     }
+    
     atualizarListaDocumentos();
 }
 
