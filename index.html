@@ -1269,18 +1269,26 @@ alert('✅ Observação removida!');
 }
 }
 
-function adicionarObservacao(texto,auto=false){
-
-const novoId = Date.now();
-
-observacoes.unshift({
-id:novoId,
-texto:texto,
-data:new Date().toISOString().split('T')[0],
-usuario:auto ? 'Sistema' : usuarioAtual
-});
-
-salvarDados();
+function adicionarObservacao(texto, auto = false) {
+    const agora = new Date();
+    const dataFormatada = agora.toLocaleDateString('pt-BR');
+    const horaFormatada = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    
+    const novoId = Date.now();
+    const novaObs = {
+        id: novoId,
+        texto: texto,
+        data: dataFormatada,
+        hora: horaFormatada,
+        usuario: auto ? 'Sistema' : usuarioAtual
+    };
+    
+    observacoes.unshift(novaObs);
+    salvarDados();
+    
+    if (typeof salvarObservacaoNoSupabase === 'function') {
+        salvarObservacaoNoSupabase(novaObs);
+    }
 }
 
 function adicionarObservacaoAuto(texto){
@@ -1294,22 +1302,36 @@ function atualizarObservacoes() {
     
     container.innerHTML = '';
     
-    // Ordenar: mais recentes primeiro
-    const observacoesOrdenadas = [...observacoes].reverse();
+    // Ordenar: do mais recente para o mais antigo (por data e hora)
+    const observacoesOrdenadas = [...observacoes].sort((a, b) => {
+        const dateA = new Date(`${a.data} ${a.hora || '00:00'}`);
+        const dateB = new Date(`${b.data} ${b.hora || '00:00'}`);
+        return dateB - dateA;
+    });
     
     observacoesOrdenadas.forEach(obs => {
         const div = document.createElement('div');
-        div.style.cssText = 'background:#f8f9fa; padding:15px; border-radius:10px; margin-bottom:10px; border-left:4px solid #667eea;';
+        div.style.cssText = `
+            background:#f8f9fa;
+            padding:15px;
+            border-radius:10px;
+            margin-bottom:10px;
+            border-left:4px solid #667eea;
+            position:relative;
+        `;
+        
         div.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <strong>${obs.usuario}</strong>
                     <small style="margin-left:10px;">${obs.data}</small>
+                    <small style="margin-left:5px; color:#666;">${obs.hora || ''}</small>
                 </div>
-                ${ehAdmin ? `<button onclick="excluirObservacao(${obs.id})" style="background:#f59e0b; padding:4px 8px; border-radius:5px; cursor:pointer;">🗑️</button>` : ''}
+                ${ehAdmin ? `<button class="btn-excluir-obs" onclick="excluirObservacao(${obs.id})" style="font-size:10px;">🗑️</button>` : ''}
             </div>
             <div style="margin-top:8px;">${obs.texto}</div>
         `;
+        
         container.appendChild(div);
     });
 }
