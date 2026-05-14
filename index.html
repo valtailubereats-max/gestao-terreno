@@ -715,20 +715,12 @@ function salvarNumeroVictor() {
     }
 }
 
-async function salvarPagamentoNoSupabase(pagamento) {
+async function salvarDocumentoNoSupabase(doc) {
     try {
-        const { data, error } = await sb
-            .from('pagamentos')
-            .insert([pagamento]);
-        
-        if(error) {
-            console.error("Erro ao salvar:", error);
-        } else {
-            console.log("✅ Pagamento salvo na nuvem!");
-        }
-    } catch(e) {
-        console.error("Erro de conexão:", e);
-    }
+        const { error } = await sb.from('documentos').insert([doc]);
+        if(error) console.error("Erro ao salvar documento:", error);
+        else console.log("✅ Documento salvo na nuvem!");
+    } catch(e) { console.error("Erro:", e); }
 }
 
 function carregarNumeroVictor() {
@@ -758,20 +750,16 @@ window.open(`https://api.whatsapp.com/send?phone=${numeroVictor}&text=${mensagem
 // ========== FUNÇÕES PARA DOCUMENTOS ==========
 let documentos = [];
 
-function carregarDocumentos() {
-    const saved = localStorage.getItem('terreno_documentos');
-    if(saved) {
-        documentos = JSON.parse(saved);
+async function carregarDocumentos() {
+    const { data: docs, error } = await sb.from('documentos').select('*');
+    
+    if(docs && docs.length > 0) {
+        documentos = docs;
+        console.log(`${docs.length} documentos carregados`);
     } else {
-        documentos = [
-            { 
-                id: 1, 
-                nome: "Contrato do Terreno", 
-                tipo: "documento", 
-                link: "https://drive.google.com/file/d/1T3tId5802KtocV3yFTaLD6DnAX2Ig6Oy/view?usp=sharing",
-                data: new Date().toLocaleDateString('pt-BR')
-            }
-        ];
+        const saved = localStorage.getItem('terreno_documentos');
+        if(saved) documentos = JSON.parse(saved);
+        else documentos = [];
     }
     atualizarListaDocumentos();
 }
@@ -810,6 +798,7 @@ function adicionarDocumentoLink() {
     
     documentos.push(novoDoc);
     salvarDocumentos();
+salvarDocumentoNoSupabase(novoDoc);  // ← ADICIONE ESTA LINHA
     atualizarListaDocumentos();
     
     linkInput.value = '';
@@ -819,11 +808,12 @@ function adicionarDocumentoLink() {
     alert('✅ Documento adicionado com sucesso!');
 }
 
-function removerDocumento(id) {
+async function removerDocumento(id) {
     if(!ehAdmin) return;
     if(confirm('Remover este documento?')) {
         documentos = documentos.filter(d => d.id !== id);
         salvarDocumentos();
+        await sb.from('documentos').delete().eq('id', id);
         atualizarListaDocumentos();
         alert('✅ Documento removido!');
     }
