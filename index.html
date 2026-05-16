@@ -722,6 +722,7 @@ async function salvarDocumentoNoSupabase(doc) {
         else console.log("✅ Documento salvo na nuvem!");
     } catch(e) { console.error("Erro:", e); }
 }
+
 async function salvarReciboNoSupabase(recibo) {
     try {
         const { error } = await sb.from('recibos').insert([recibo]);
@@ -735,7 +736,7 @@ async function salvarReciboNoSupabase(recibo) {
     }
 }
 
-    async function salvarPagamentoNoSupabase(pagamento) {
+async function salvarPagamentoNoSupabase(pagamento) {
     try {
         const { error } = await sb.from('pagamentos').insert([pagamento]);
         if(error) {
@@ -784,8 +785,6 @@ async function carregarDocumentos() {
         console.error("Erro ao carregar:", error);
     }
     
-    console.log("Documentos do Supabase:", docs);
-    
     if(docs && docs.length > 0) {
         documentos = docs;
         console.log(`${docs.length} documentos carregados`);
@@ -795,10 +794,6 @@ async function carregarDocumentos() {
     }
     
     atualizarListaDocumentos();
-}
-
-function salvarDocumentos() {
-    localStorage.setItem('terreno_documentos', JSON.stringify(documentos));
 }
 
 function adicionarDocumentoLink() {
@@ -830,8 +825,7 @@ function adicionarDocumentoLink() {
     };
     
     documentos.push(novoDoc);
-    salvarDocumentos();
-salvarDocumentoNoSupabase(novoDoc);  // ← ADICIONE ESTA LINHA
+    salvarDocumentoNoSupabase(novoDoc);
     atualizarListaDocumentos();
     
     linkInput.value = '';
@@ -845,7 +839,6 @@ async function removerDocumento(id) {
     if(!ehAdmin) return;
     if(confirm('Remover este documento?')) {
         documentos = documentos.filter(d => d.id !== id);
-        salvarDocumentos();
         await sb.from('documentos').delete().eq('id', id);
         atualizarListaDocumentos();
         alert('✅ Documento removido!');
@@ -906,85 +899,64 @@ let usuarioAtual = null;
 let ehAdmin = false;
 let ehVendedor = false;
 
-function gerarRecibosAntigos(){
-
-const pagamentosConfirmados =
-pagamentos.filter(p => p.confirmado === true);
-
-pagamentosConfirmados.forEach(pagamento => {
-
-const reciboExistente = recibos.find(r =>
-r.valor === pagamento.valor &&
-r.observacao === pagamento.obs
-);
-
-if(!reciboExistente){
-
-recibos.push({
-
-id: Date.now() + Math.random(),
-
-valor: pagamento.valor,
-
-data: new Date(pagamento.data)
-.toLocaleDateString('pt-BR'),
-
-hora: '12:00:00',
-
-vendedor: 'Victor Hugo',
-
-compradores: 'Valtail e Débora Melo',
-
-observacao: pagamento.obs
-});
+// FUNÇÃO PARA CARREGAR DO SUPABASE (APENAS NUVEM)
+async function carregarDoSupabase() {
+    try {
+        console.log("Carregando do Supabase...");
+        
+        const { data: pag, error: errPag } = await sb
+            .from('pagamentos')
+            .select('*')
+            .order('data', { ascending: false });
+        
+        if(errPag) console.error("Erro:", errPag);
+        if(pag && pag.length > 0) {
+            pagamentos = pag;
+            console.log(`${pag.length} pagamentos carregados`);
+        } else {
+            pagamentos = [];
+        }
+        
+        const { data: obs, error: errObs } = await sb
+            .from('observacoes')
+            .select('*')
+            .order('data', { ascending: false });
+        
+        if(obs && obs.length > 0) {
+            observacoes = obs;
+        } else {
+            observacoes = [];
+        }
+        
+        const { data: rec, error: errRec } = await sb
+            .from('recibos')
+            .select('*');
+        
+        if(rec && rec.length > 0) {
+            recibos = rec;
+        } else {
+            recibos = [];
+        }
+        
+        atualizarDashboard();
+        atualizarObservacoes();
+        atualizarRecibos();
+        
+    } catch(e) {
+        console.error("Erro de conexão:", e);
+    }
 }
-});
-}
 
-function carregarDados(){
-
-    // Carregar do localStorage primeiro
-    const saved = localStorage.getItem('terreno_pagamentos');
-    if(saved) pagamentos = JSON.parse(saved);
-    
-    const savedObs = localStorage.getItem('terreno_observacoes');
-    if(savedObs) observacoes = JSON.parse(savedObs);
-    
-    const savedRecibos = localStorage.getItem('terreno_recibos');
-    if(savedRecibos) recibos = JSON.parse(savedRecibos);
-    
-    gerarRecibosAntigos();
-    
+function carregarDados() {
+    // Apenas carrega do Supabase (sem localStorage)
     carregarDoSupabase();
 }
 
-function salvarDados(){
-
-    localStorage.setItem('terreno_pagamentos', JSON.stringify(pagamentos));
-    localStorage.setItem('terreno_observacoes', JSON.stringify(observacoes));
-    localStorage.setItem('terreno_recibos', JSON.stringify(recibos));
-
+function salvarDados() {
+    // Não salva no localStorage - apenas atualiza a tela
     atualizarDashboard();
     atualizarObservacoes();
     atualizarRecibos();
-    
-    salvarTodosNoSupabase();
-}
-
-async function salvarTodosNoSupabase() {
-    try {
-        for(const p of pagamentos) {
-            await sb.from('pagamentos').upsert(p, { onConflict: 'id' });
-        }
-        
-        for(const o of observacoes) {
-            await sb.from('observacoes').upsert(o, { onConflict: 'id' });
-        }
-        
-        console.log("✅ Dados salvos no Supabase!");
-    } catch(e) {
-        console.error("Erro:", e);
-    }
 }
 
 function calcularTotalPago() {
@@ -1194,17 +1166,16 @@ function adicionarPagamento(data, valor, obs) {
     };
 
     pagamentos.push(novoPagamento);
-    salvarDados();
     salvarPagamentoNoSupabase(novoPagamento);
+    salvarDados();
 
     adicionarObservacaoAuto(`💰 Pagamento de R$ ${valorNumerico.toLocaleString('pt-BR')} registrado por ${usuarioAtual}. Aguardando confirmação.`);
     notificarVictor(valorNumerico, obs);
 
     alert('✅ Pagamento registrado! Victor foi notificado via WhatsApp.');
 
-    // 🔻 FORÇAR RECARREGAMENTO DA TELA 🔻
-    setTimeout(function() {
-        location.reload();
+    setTimeout(() => {
+        recarregarDados();
     }, 1000);
 }
 
@@ -1224,22 +1195,15 @@ function confirmarPagamento(id) {
             observacao: pagamento.obs || ''
         };
         
-        console.log("Recibo a ser salvo:", recibo);  // 🔍 Ver o que está sendo enviado
-        
         recibos.unshift(recibo);
         
-        // Salvar no Supabase
-        sb.from('recibos').insert([recibo]).then(r => {
-            console.log("Resultado do Supabase:", r);
-            if(r.error) {
-                console.error("Erro detalhado:", r.error);
-            } else {
-                console.log("✅ Recibo salvo com sucesso!");
-            }
-        });
-        
+        salvarReciboNoSupabase(recibo);
         salvarDados();
-        adicionarObservacaoAuto(`✅ Pagamento confirmado!`);
+        
+        // Atualizar o pagamento no Supabase
+        sb.from('pagamentos').update({ confirmado: true }).eq('id', id);
+        
+        adicionarObservacaoAuto(`✅ Pagamento de R$ ${pagamento.valor.toLocaleString('pt-BR')} CONFIRMADO por Victor Hugo.`);
         alert('✅ Pagamento confirmado e recibo emitido!');
         
         setTimeout(() => {
@@ -1247,58 +1211,43 @@ function confirmarPagamento(id) {
         }, 500);
     }
 }
-  function editarPagamento(id){
 
-if(!ehAdmin) return;
-
-const pagamento =
-pagamentos.find(p => p.id === id);
-
-if(!pagamento) return;
-
-const novoValor =
-prompt('Editar valor (R$):',pagamento.valor);
-
-if(novoValor && !isNaN(novoValor)){
-
-pagamento.valor = parseFloat(novoValor);
-
-salvarDados();
-}
+async function editarPagamento(id) {
+    if(!ehAdmin) return;
+    const pagamento = pagamentos.find(p => p.id === id);
+    if(!pagamento) return;
+    
+    const novoValor = prompt('Editar valor (R$):', pagamento.valor);
+    if(novoValor && !isNaN(novoValor)) {
+        pagamento.valor = parseFloat(novoValor);
+        await sb.from('pagamentos').update({ valor: pagamento.valor }).eq('id', id);
+        recarregarDados();
+        alert('✅ Pagamento atualizado!');
+    }
 }
 
 async function removerPagamento(id) {
     if(confirm('Remover este pagamento?')) {
         pagamentos = pagamentos.filter(p => p.id !== id);
-        salvarDados();
-        
-        // Remover do Supabase
         await sb.from('pagamentos').delete().eq('id', id);
-        
-        console.log("✅ Pagamento removido do Supabase!");
-        alert('✅ Pagamento removido!');
-        
         recarregarDados();
+        alert('✅ Pagamento removido!');
     }
 }
 
 function excluirObservacao(id){
-
-if(!ehAdmin) {
-alert("❌ Apenas o administrador pode excluir observações!");
-return;
-}
-
-if(confirm('Remover esta observação?')){
-
-observacoes = observacoes.filter(obs => obs.id !== id);
-
-salvarDados();
-
-atualizarObservacoes();
-
-alert('✅ Observação removida!');
-}
+    if(!ehAdmin) {
+        alert("❌ Apenas o administrador pode excluir observações!");
+        return;
+    }
+    
+    if(confirm('Remover esta observação?')){
+        observacoes = observacoes.filter(obs => obs.id !== id);
+        sb.from('observacoes').delete().eq('id', id);
+        salvarDados();
+        atualizarObservacoes();
+        alert('✅ Observação removida!');
+    }
 }
 
 function adicionarObservacao(texto, auto = false) {
@@ -1316,16 +1265,12 @@ function adicionarObservacao(texto, auto = false) {
     };
     
     observacoes.unshift(novaObs);
+    sb.from('observacoes').insert([novaObs]);
     salvarDados();
-    
-    if (typeof salvarObservacaoNoSupabase === 'function') {
-        salvarObservacaoNoSupabase(novaObs);
-    }
 }
 
 function adicionarObservacaoAuto(texto){
-
-adicionarObservacao(texto,true);
+    adicionarObservacao(texto, true);
 }
 
 function atualizarObservacoes() {
@@ -1334,7 +1279,6 @@ function atualizarObservacoes() {
     
     container.innerHTML = '';
     
-    // Ordenar: do mais recente para o mais antigo (por data e hora)
     const observacoesOrdenadas = [...observacoes].sort((a, b) => {
         const dateA = new Date(`${a.data} ${a.hora || '00:00'}`);
         const dateB = new Date(`${b.data} ${b.hora || '00:00'}`);
@@ -1368,120 +1312,52 @@ function atualizarObservacoes() {
     });
 }
 
-function atualizarRecibos(){
-
-const container =
-document.getElementById('listaRecibos');
-
-if(!container) return;
-
-container.innerHTML = '';
-
-if(recibos.length === 0){
-
-container.innerHTML =
-`<div style="padding:20px; text-align:center;">
-Nenhum recibo emitido ainda.
-</div>`;
-
-return;
-}
-
-recibos.forEach(recibo=>{
-
-const div = document.createElement('div');
-
-div.className = 'recibo-box';
-
-div.innerHTML = `
-
-<div class="recibo-topo">
-
-<h2>🧾 RECIBO DE PAGAMENTO</h2>
-
-<p>
-Confirmação oficial de recebimento bancário
-</p>
-
-</div>
-
-<div class="recibo-info">
-
-<p>
-<strong>📅 Data:</strong>
-${recibo.data}
-</p>
-
-<p>
-<strong>⏰ Horário:</strong>
-${recibo.hora}
-</p>
-
-<p>
-<strong>💰 Valor:</strong>
-R$ ${recibo.valor.toLocaleString('pt-BR',{
-minimumFractionDigits:2
-})}
-</p>
-
-<hr style="margin:15px 0;">
-
-<p>
-<strong>👤 Vendedor:</strong>
-Victor Hugo
-</p>
-
-<p>
-<strong>🤝 Compradores:</strong>
-Valtail e Débora Melo
-</p>
-
-<p>
-<strong>📝 Referência:</strong>
-${recibo.observacao || '-'}
-</p>
-
-</div>
-
-<div class="recibo-confirmacao">
-
-✅ Victor Hugo confirma oficialmente o recebimento do valor acima em sua conta bancária.
-
-</div>
-
-<div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
-
-    <button class="btn-imprimir" onclick="imprimirRecibo(${recibo.id})">
-        🖨️ Imprimir Recibo
-    </button>
-
-    <button style="background:#25d366; color:white; padding:12px 30px; border-radius:8px;"
-        onclick="enviarWhatsAppRecibo(${recibo.id})">
-        📲 Copiar e Abrir WhatsApp
-    </button>
-
-    <!-- 🔻 ADICIONE ESTE TERCEIRO BOTÃO 🔻 -->
-    <button style="background:#128C7E; color:white; padding:12px 30px; border-radius:8px;"
-        onclick="enviarWhatsAppDireto(${recibo.id})">
-        📱 Enviar Direto (Victor)
-    </button>
-    <!-- 🔺 ATÉ AQUI 🔺 -->
-
-</div>
-
-`;
-
-container.appendChild(div);
-});
+function atualizarRecibos() {
+    const container = document.getElementById('listaRecibos');
+    if(!container) return;
+    
+    container.innerHTML = '';
+    
+    if(recibos.length === 0) {
+        container.innerHTML = `<div style="padding:20px; text-align:center;">Nenhum recibo emitido ainda.</div>`;
+        return;
+    }
+    
+    recibos.forEach(recibo => {
+        const div = document.createElement('div');
+        div.className = 'recibo-box';
+        div.innerHTML = `
+            <div class="recibo-topo">
+                <h2>🧾 RECIBO DE PAGAMENTO</h2>
+                <p>Confirmação oficial de recebimento bancário</p>
+            </div>
+            <div class="recibo-info">
+                <p><strong>📅 Data:</strong> ${recibo.data}</p>
+                <p><strong>⏰ Horário:</strong> ${recibo.hora}</p>
+                <p><strong>💰 Valor:</strong> R$ ${recibo.valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</p>
+                <hr>
+                <p><strong>👤 Vendedor:</strong> Victor Hugo</p>
+                <p><strong>🤝 Compradores:</strong> Valtail e Débora Melo</p>
+                <p><strong>📝 Referência:</strong> ${recibo.observacao || '-'}</p>
+            </div>
+            <div class="recibo-confirmacao">
+                ✅ Victor Hugo confirma oficialmente o recebimento do valor acima em sua conta bancária.
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px;">
+                <button class="btn-imprimir" onclick="imprimirRecibo(${recibo.id})">🖨️ Imprimir Recibo</button>
+                <button style="background:#25d366; color:white; padding:12px 30px; border-radius:8px;" onclick="enviarWhatsAppRecibo(${recibo.id})">📲 Copiar e Abrir WhatsApp</button>
+                <button style="background:#128C7E; color:white; padding:12px 30px; border-radius:8px;" onclick="enviarWhatsAppDireto(${recibo.id})">📱 Enviar Direto (Victor)</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
 }
 
 function enviarWhatsAppRecibo(id) {
-
     const recibo = recibos.find(r => r.id === id);
     if (!recibo) return;
 
-    const mensagem = 
-`🧾 RECIBO DE PAGAMENTO - TERRENO
+    const mensagem = `🧾 RECIBO DE PAGAMENTO - TERRENO
 
 📅 Data: ${recibo.data}
 ⏰ Horário: ${recibo.hora}
@@ -1500,494 +1376,17 @@ O terreno faz divisa com o terreno de Débora Fernanda Bailarin e com o terreno 
 
 ✅ Victor Hugo confirma o recebimento do valor.`;
 
-    // Copiar mensagem
     navigator.clipboard.writeText(mensagem);
-    
-    // Mostrar alerta com instruções para o celular
-    alert('✅ Mensagem copiada!\n\n📱 No CELULAR:\n1. Abra o WhatsApp\n2. Escolha o contato\n3. Cole a mensagem (segure e cole)\n\n💻 No COMPUTADOR: WhatsApp Web vai abrir agora.');
-    
-    // Abrir WhatsApp Web (para computador)
+    alert('✅ Mensagem copiada!\n\n📱 No CELULAR: Abra o WhatsApp, escolha o contato e cole a mensagem.\n\n💻 No COMPUTADOR: WhatsApp Web vai abrir agora.');
     window.open('https://web.whatsapp.com', '_blank');
 }
 
-function imprimirRecibo(id) {
-
-    const recibo = recibos.find(r => r.id === id);
-    if (!recibo) return;
-
-    // Link da assinatura do Victor
-    const assinaturaUrl = "https://drive.google.com/uc?export=view&id=1xIfdVrvbw7BIoDVPyAHHNgoprKq5CKqY";
-
-    const janela = window.open('', '', 'width=800,height=900');
-
-    janela.document.write(`
-
-<html>
-<head>
-<title>Recibo - Terreno</title>
-<style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: 'Times New Roman', Arial, sans-serif; padding: 40px; line-height: 1.6; }
-    h1 { text-align: center; color: #10b981; margin-bottom: 30px; font-size: 28px; }
-    .box { border: 2px solid #10b981; border-radius: 15px; padding: 30px; max-width: 800px; margin: 0 auto; }
-    .recibo-info p { margin: 8px 0; }
-    .descricao-terreno { 
-        background: #f8f9fa; 
-        padding: 20px; 
-        border-radius: 10px; 
-        margin: 20px 0;
-        border-left: 5px solid #10b981;
-        font-size: 14px;
-    }
-    .assinatura { 
-        margin-top: 40px; 
-        text-align: center; 
-    }
-    .assinatura img { 
-        max-width: 200px; 
-        max-height: 80px; 
-        object-fit: contain;
-    }
-    .linha-assinatura {
-        margin-top: 30px;
-        text-align: center;
-    }
-    hr { margin: 20px 0; }
-</style>
-</head>
-<body>
-
-<div class="box">
-
-    <h1>🧾 RECIBO DE PAGAMENTO</h1>
-
-    <div class="recibo-info">
-        <p><strong>📅 Data:</strong> ${recibo.data}</p>
-        <p><strong>⏰ Horário:</strong> ${recibo.hora}</p>
-        <p><strong>💰 Valor:</strong> R$ ${recibo.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-    </div>
-
-    <hr>
-
-    <div class="descricao-terreno">
-        <p><strong>📌 DESCRIÇÃO DO PAGAMENTO:</strong></p>
-        <p style="margin-top: 10px;">
-            O presente pagamento refere-se à <strong>compra e venda do terreno</strong> localizado na 
-            <strong>Rua São Lazaro, nº 110, Santana, Piracicaba - SP</strong>, medindo aproximadamente 
-            <strong>491,15 m² (quatrocentos e noventa e um metros quadrados e quinze centímetros)</strong>.
-        </p>
-        <p style="margin-top: 10px;">
-            O imóvel faz divisa com o terreno já pertencente a <strong>Débora Fernanda Bailarin</strong> e, 
-            do outro lado, divisa com o terreno de <strong>Lázaro Armando Bailarin</strong>.
-        </p>
-    </div>
-
-    <hr>
-
-    <div class="recibo-info">
-        <p><strong>👤 Vendedor:</strong> Victor Hugo Bailarin</p>
-        <p><strong>🤝 Compradores:</strong> Valtail Menegassi de Melo e Débora Fernanda Bailarin</p>
-        <p><strong>📝 Referência:</strong> ${recibo.observacao || 'Pagamento registrado no sistema'}</p>
-    </div>
-
-    <div class="recibo-confirmacao" style="margin: 20px 0; padding: 15px; background: #f0fff7; border-left: 5px solid #10b981; border-radius: 10px;">
-        ✅ Victor Hugo Bailarin confirma oficialmente o recebimento do valor acima em sua conta bancária, 
-        referente à compra do terreno descrito.
-    </div>
-
-    <div class="assinatura">
-        <p><strong>Assinatura do Vendedor:</strong></p>
-        <img src="${assinaturaUrl}" alt="Assinatura de Victor Hugo" onerror="this.style.display='none'; this.nextSibling.style.display='block';">
-        <div style="display:none;">_______________________________</div>
-        <p style="margin-top: 10px;">Victor Hugo Bailarin</p>
-    </div>
-
-</div>
-
-<script>
-    window.print();
-<\/script>
-
-</body>
-</html>
-`);
-    janela.document.close();
-}
-
-function exportarDados(){
-
-const dataStr = JSON.stringify({
-pagamentos,
-observacoes,
-recibos,
-documentos
-},null,2);
-
-const dataUri =
-'data:application/json;charset=utf-8,' +
-encodeURIComponent(dataStr);
-
-const link = document.createElement('a');
-
-link.setAttribute('href',dataUri);
-
-link.setAttribute('download','backup.json');
-
-link.click();
-}
-
-function importarDados(){
-
-document.getElementById('importFile').click();
-}
-
-function processarImportacao(event){
-
-const file = event.target.files[0];
-
-const reader = new FileReader();
-
-reader.onload = (e)=>{
-
-const d = JSON.parse(e.target.result);
-
-pagamentos = d.pagamentos || [];
-observacoes = d.observacoes || [];
-recibos = d.recibos || [];
-documentos = d.documentos || [];
-
-salvarDados();
-salvarDocumentos();
-
-alert('✅ Dados importados com sucesso!');
-};
-
-reader.readAsText(file);
-}
-
-function fazerLogin(){
-
-const usuario =
-document.getElementById('usuarioSelect').value;
-
-const senha =
-document.getElementById('senhaInput').value;
-
-if(SENHAS[usuario] === senha){
-
-usuarioAtual = usuario;
-
-ehAdmin = (usuario === 'Valtail');
-
-ehVendedor = (usuario === 'Victor Hugo');
-
-document.getElementById('loginSection').style.display = 'none';
-
-document.getElementById('appSection').style.display = 'block';
-
-document.getElementById('usuarioLogado').innerHTML =
-`👋 Olá, ${usuario}!`;
-
-const btnSalvar =
-document.getElementById('btnSalvarPagamento');
-
-const msgAdmin =
-document.getElementById('adminOnlyMsg');
-
-const btnAdicionarTab =
-document.getElementById('btnAdicionarTab');
-
-if(ehAdmin){
-
-btnSalvar.disabled = false;
-
-btnSalvar.style.opacity = "1";
-
-btnSalvar.style.cursor = "pointer";
-
-msgAdmin.style.display = "none";
-
-btnAdicionarTab.style.display = "inline-block";
-
-}else{
-
-btnSalvar.disabled = true;
-
-btnSalvar.style.opacity = "0.5";
-
-btnSalvar.style.cursor = "not-allowed";
-
-msgAdmin.style.display = "block";
-
-btnAdicionarTab.style.display = "none";
-}
-
-if(ehAdmin){
-
-document.getElementById('adminBadge').style.display = 'block';
-
-document.getElementById('adminTab').style.display = 'block';
-
-const uploadArea = document.getElementById('uploadAreaAdmin');
-if(uploadArea) uploadArea.style.display = 'block';
-}
-
-if(ehVendedor){
-
-document.getElementById('vendedorBadge').style.display = 'block';
-}
-
-carregarDados();
-
-carregarDocumentos();
-
-carregarNumeroVictor();
-
-atualizarDashboard();
-
-atualizarObservacoes();
-
-atualizarRecibos();
-
-iniciarAtualizacaoAutomatica();
-
-}else{
-
-alert('❌ Senha incorreta!');
-}
-}
-
-function deslogar() {
-    if (confirm('Tem certeza que deseja sair?')) {
-        // Limpar dados da sessão
-        usuarioAtual = null;
-        ehAdmin = false;
-        ehVendedor = false;
-        
-        // Esconder app e mostrar login
-        document.getElementById('appSection').style.display = 'none';
-        document.getElementById('loginSection').style.display = 'block';
-        
-        // Limpar campo de senha
-        document.getElementById('senhaInput').value = '';
-        
-        // No CodePen, não use location.reload()
-        // Apenas limpar os campos já resolve
-    }
-}
-
-function switchTab(tabName){
-
-document.querySelectorAll('.tab-content')
-.forEach(tab => {
-tab.classList.remove('active');
-});
-
-document.querySelectorAll('.tab-btn')
-.forEach(btn => {
-btn.classList.remove('active');
-});
-
-const tabSelecionada =
-document.getElementById(`tab-${tabName}`);
-
-if(tabSelecionada){
-tabSelecionada.classList.add('active');
-}
-
-const botaoSelecionado =
-document.querySelector(
-`button[onclick="switchTab('${tabName}')"]`
-);
-
-if(botaoSelecionado){
-botaoSelecionado.classList.add('active');
-}
-}
-
-document.getElementById('formPagamento')
-.addEventListener('submit',(e)=>{
-
-e.preventDefault();
-
-const data =
-document.getElementById('dataPagamento').value;
-
-const valor =
-document.getElementById('valorPagamento').value;
-
-const obs =
-document.getElementById('obsPagamento').value;
-
-adicionarPagamento(data,valor,obs);
-
-document.getElementById('formPagamento').reset();
-
-switchTab('pagamentos');
-});
-
-document.getElementById('formObservacao')
-.addEventListener('submit',(e)=>{
-
-e.preventDefault();
-
-const texto =
-document.getElementById('novaObservacao').value;
-
-if(texto){
-
-adicionarObservacao(texto);
-
-document.getElementById('novaObservacao').value = '';
-}
-});
-
-function toggleSenha(){
-
-const input =
-document.getElementById('senhaInput');
-
-if(input.type === 'password'){
-
-input.type = 'text';
-
-}else{
-
-input.type = 'password';
-}
-}
-
-// Atualização automática leve (sem recarregar a página)
-function iniciarAtualizacaoAutomatica() {
-    setInterval(async () => {
-        console.log("🔄 Buscando novos dados...");
-        
-        // Buscar pagamentos atualizados
-        const { data: pag } = await sb
-            .from('pagamentos')
-            .select('*')
-            .order('data', { ascending: false });
-        
-        if(pag && pag.length > 0) {
-            // Comparar se houve mudança
-            if(pagamentos.length !== pag.length) {
-                pagamentos.length = 0;
-                for(let p of pag) pagamentos.push(p);
-                atualizarDashboard();
-                console.log("✅ Pagamentos atualizados!");
-            }
-        }
-        
-        // Buscar observações atualizadas
-        const { data: obs } = await sb
-            .from('observacoes')
-            .select('*')
-            .order('data', { ascending: false });
-        
-        if(obs && obs.length > 0) {
-            if(observacoes.length !== obs.length) {
-                observacoes.length = 0;
-                for(let o of obs) observacoes.push(o);
-                atualizarObservacoes();
-                console.log("✅ Observações atualizadas!");
-            }
-        }
-        
-    }, 30000); // 30 segundos
-}
-
-// FUNÇÃO PARA RECARREGAR DADOS (APENAS UMA VEZ)
-async function recarregarDados() {
-    console.log("🔄 Recarregando dados...");
-    
-    // Forçar recarregamento do Supabase
-    const { data: pag, error: errPag } = await sb
-        .from('pagamentos')
-        .select('*')
-        .order('data', { ascending: false });
-    
-    if(pag && pag.length > 0) {
-        pagamentos = pag;
-        console.log(`${pag.length} pagamentos recarregados`);
-    }
-    
-    const { data: obs, error: errObs } = await sb
-        .from('observacoes')
-        .select('*')
-        .order('data', { ascending: false });
-    
-    if(obs && obs.length > 0) {
-        observacoes = obs;
-    }
-    
-    // Atualizar recibos também
-    const { data: rec, error: errRec } = await sb
-        .from('recibos')
-        .select('*');
-    
-    if(rec && rec.length > 0) {
-        recibos = rec;
-    }
-    
-    // Atualizar a tela
-    atualizarDashboard();
-    atualizarObservacoes();
-    atualizarRecibos();
-    
-    console.log("✅ Dados atualizados!");
-}
-
-// FUNÇÃO PARA CARREGAR DO SUPABASE
-async function carregarDoSupabase() {
-    try {
-        console.log("Carregando do Supabase...");
-        
-        const { data: pag, error: errPag } = await sb
-            .from('pagamentos')
-            .select('*')
-            .order('data', { ascending: false });
-        
-        if(errPag) console.error("Erro:", errPag);
-        if(pag && pag.length > 0) {
-            pagamentos = pag;
-            console.log(`${pag.length} pagamentos carregados`);
-        }
-        
-        const { data: obs, error: errObs } = await sb
-            .from('observacoes')
-            .select('*')
-            .order('data', { ascending: false });
-        
-        if(obs && obs.length > 0) {
-            observacoes = obs;
-        }
-        
-        const { data: rec, error: errRec } = await sb
-            .from('recibos')
-            .select('*');
-        
-        if(rec && rec.length > 0) {
-            recibos = rec;
-        }
-        
-        atualizarDashboard();
-        atualizarObservacoes();
-        atualizarRecibos();
-        
-    } catch(e) {
-        console.error("Erro de conexão:", e);
-    }
-}
-
 function enviarWhatsAppDireto(id) {
-
     const recibo = recibos.find(r => r.id === id);
     if (!recibo) return;
 
     const numero = numeroVictor || "4407508309536";
-
-    const mensagem = 
-`🧾 RECIBO DE PAGAMENTO - TERRENO
+    const mensagem = `🧾 RECIBO DE PAGAMENTO - TERRENO
 
 📅 Data: ${recibo.data}
 ⏰ Horário: ${recibo.hora}
@@ -2008,6 +1407,174 @@ O terreno faz divisa com o terreno de Débora Fernanda Bailarin e com o terreno 
 
     const msgCodificada = encodeURIComponent(mensagem);
     window.open(`https://api.whatsapp.com/send?phone=${numero}&text=${msgCodificada}`, '_blank');
+}
+
+function imprimirRecibo(id) {
+    const recibo = recibos.find(r => r.id === id);
+    if (!recibo) return;
+
+    const assinaturaUrl = "https://drive.google.com/uc?export=view&id=1xIfdVrvbw7BIoDVPyAHHNgoprKq5CKqY";
+    const janela = window.open('', '', 'width=800,height=900');
+    
+    janela.document.write(`<html><head><title>Recibo</title><style>
+        body{font-family:Arial;padding:40px;} h1{color:#10b981;text-align:center;}
+        .box{border:2px solid #10b981;border-radius:15px;padding:30px;max-width:800px;margin:0 auto;}
+        .descricao-terreno{background:#f8f9fa;padding:15px;border-radius:10px;margin:15px 0;}
+        .assinatura{text-align:center;margin-top:30px;}
+        .assinatura img{max-width:200px;max-height:80px;}
+    </style></head><body>
+    <div class="box">
+        <h1>RECIBO DE PAGAMENTO</h1>
+        <p><strong>Data:</strong> ${recibo.data}</p>
+        <p><strong>Horário:</strong> ${recibo.hora}</p>
+        <p><strong>Valor:</strong> R$ ${recibo.valor.toLocaleString('pt-BR', {minimumFractionDigits:2})}</p>
+        <hr>
+        <div class="descricao-terreno">
+            <p><strong>Descrição:</strong> Pagamento referente à compra do terreno localizado na Rua São Lazaro, nº 110, Santana, Piracicaba-SP, medindo 491,15 m². Faz divisa com terreno de Débora Fernanda Bailarin e com terreno de Lázaro Armando Bailarin.</p>
+        </div>
+        <p><strong>Vendedor:</strong> Victor Hugo Bailarin</p>
+        <p><strong>Compradores:</strong> Valtail Menegassi de Melo e Débora Fernanda Bailarin</p>
+        <div class="assinatura">
+            <p><strong>Assinatura do Vendedor:</strong></p>
+            <img src="${assinaturaUrl}" alt="Assinatura">
+            <p>Victor Hugo Bailarin</p>
+        </div>
+    </div>
+    <script>window.print();<\/script>
+    </body></html>`);
+    janela.document.close();
+}
+
+function exportarDados() {
+    const dataStr = JSON.stringify({ pagamentos, observacoes, recibos, documentos }, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    const link = document.createElement('a');
+    link.setAttribute('href', dataUri);
+    link.setAttribute('download', `terreno_backup_${new Date().toISOString().split('T')[0]}.json`);
+    link.click();
+}
+
+function importarDados() {
+    document.getElementById('importFile').click();
+}
+
+function processarImportacao(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const d = JSON.parse(e.target.result);
+        if(d.pagamentos) for(const p of d.pagamentos) await sb.from('pagamentos').upsert(p);
+        if(d.observacoes) for(const o of d.observacoes) await sb.from('observacoes').upsert(o);
+        if(d.recibos) for(const r of d.recibos) await sb.from('recibos').upsert(r);
+        if(d.documentos) for(const doc of d.documentos) await sb.from('documentos').upsert(doc);
+        recarregarDados();
+        alert('✅ Dados importados com sucesso!');
+    };
+    reader.readAsText(file);
+}
+
+function fazerLogin() {
+    const usuario = document.getElementById('usuarioSelect').value;
+    const senha = document.getElementById('senhaInput').value;
+
+    if (SENHAS[usuario] === senha) {
+        usuarioAtual = usuario;
+        ehAdmin = (usuario === 'Valtail');
+        ehVendedor = (usuario === 'Victor Hugo');
+
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('appSection').style.display = 'block';
+        document.getElementById('usuarioLogado').innerHTML = `👋 Olá, ${usuario}!`;
+
+        const btnSalvar = document.getElementById('btnSalvarPagamento');
+        const msgAdmin = document.getElementById('adminOnlyMsg');
+        const btnAdicionarTab = document.getElementById('btnAdicionarTab');
+
+        if (ehAdmin) {
+            btnSalvar.disabled = false;
+            btnSalvar.style.opacity = "1";
+            btnSalvar.style.cursor = "pointer";
+            msgAdmin.style.display = "none";
+            btnAdicionarTab.style.display = "inline-block";
+        } else {
+            btnSalvar.disabled = true;
+            btnSalvar.style.opacity = "0.5";
+            btnSalvar.style.cursor = "not-allowed";
+            msgAdmin.style.display = "block";
+            btnAdicionarTab.style.display = "none";
+        }
+
+        if (ehAdmin) {
+            document.getElementById('adminBadge').style.display = 'block';
+            document.getElementById('adminTab').style.display = 'block';
+            const uploadArea = document.getElementById('uploadAreaAdmin');
+            if (uploadArea) uploadArea.style.display = 'block';
+        }
+
+        if (ehVendedor) {
+            document.getElementById('vendedorBadge').style.display = 'block';
+        }
+
+        carregarDados();
+        carregarDocumentos();
+        carregarNumeroVictor();
+        atualizarDashboard();
+        atualizarObservacoes();
+        atualizarRecibos();
+
+    } else {
+        alert('❌ Senha incorreta!');
+    }
+}
+
+function deslogar() {
+    if (confirm('Tem certeza que deseja sair?')) {
+        usuarioAtual = null;
+        ehAdmin = false;
+        ehVendedor = false;
+        document.getElementById('appSection').style.display = 'none';
+        document.getElementById('loginSection').style.display = 'block';
+        document.getElementById('senhaInput').value = '';
+    }
+}
+
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    const tabSelecionada = document.getElementById(`tab-${tabName}`);
+    if (tabSelecionada) tabSelecionada.classList.add('active');
+    const botaoSelecionado = document.querySelector(`button[onclick="switchTab('${tabName}')"]`);
+    if (botaoSelecionado) botaoSelecionado.classList.add('active');
+}
+
+document.getElementById('formPagamento').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = document.getElementById('dataPagamento').value;
+    const valor = document.getElementById('valorPagamento').value;
+    const obs = document.getElementById('obsPagamento').value;
+    adicionarPagamento(data, valor, obs);
+    document.getElementById('formPagamento').reset();
+    switchTab('pagamentos');
+});
+
+document.getElementById('formObservacao').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const texto = document.getElementById('novaObservacao').value;
+    if (texto) {
+        adicionarObservacao(texto);
+        document.getElementById('novaObservacao').value = '';
+    }
+});
+
+function toggleSenha() {
+    const input = document.getElementById('senhaInput');
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+async function recarregarDados() {
+    console.log("🔄 Recarregando dados...");
+    await carregarDoSupabase();
+    console.log("✅ Dados atualizados!");
 }
 
 </script>
