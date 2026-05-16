@@ -1221,13 +1221,11 @@ function confirmarPagamento(id) {
         adicionarObservacaoAuto(`✅ Pagamento confirmado!`);
         alert('✅ Pagamento confirmado e recibo emitido!');
         
-        // Recarregar dados
         setTimeout(() => {
             recarregarDados();
         }, 500);
     }
 }
-
   function editarPagamento(id){
 
 if(!ehAdmin) return;
