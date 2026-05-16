@@ -735,6 +735,18 @@ async function salvarReciboNoSupabase(recibo) {
     }
 }
 
+    async function salvarPagamentoNoSupabase(pagamento) {
+    try {
+        const { error } = await sb.from('pagamentos').insert([pagamento]);
+        if(error) {
+            console.error("Erro ao salvar pagamento:", error);
+        } else {
+            console.log("✅ Pagamento salvo na nuvem!");
+        }
+    } catch(e) {
+        console.error("Erro de conexão:", e);
+    }
+}
 
 function carregarNumeroVictor() {
     const input = document.getElementById('numeroVictorInput');
