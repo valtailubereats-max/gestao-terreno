@@ -696,7 +696,7 @@ Registrar Pagamento
 
 <script>
 
-let numeroVictor = localStorage.getItem('numeroVictor') || "4407508309536";
+let numeroVictor = localStorage.getItem('numeroVictor') || "55 19 99260-6502";
 
 // CONFIGURAÇÃO SUPABASE
 const SUPABASE_URL = "https://vpumxmewnmnoabhyprwu.supabase.co";
@@ -1428,7 +1428,7 @@ function enviarWhatsAppDireto(id) {
     const recibo = recibos.find(r => r.id === id);
     if (!recibo) return;
 
-    const numero = numeroVictor || "4407508309536";
+    const numero = numeroVictor || "55 19 99260-6502";
     const mensagem = `🧾 RECIBO DE PAGAMENTO - TERRENO
 
 📅 Data: ${recibo.data}
