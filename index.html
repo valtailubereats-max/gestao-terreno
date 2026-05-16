@@ -1209,13 +1209,22 @@ function confirmarPagamento(id) {
             hora: agora.toLocaleTimeString('pt-BR'),
             vendedor: 'Victor Hugo',
             compradores: 'Valtail e Débora Melo',
-            observacao: pagamento.obs
+            observacao: pagamento.obs || ''
         };
+        
+        console.log("Recibo a ser salvo:", recibo);  // 🔍 Ver o que está sendo enviado
         
         recibos.unshift(recibo);
         
-        // 🔻 SALVAR NO SUPABASE 🔻
-        salvarReciboNoSupabase(recibo);
+        // Salvar no Supabase
+        sb.from('recibos').insert([recibo]).then(r => {
+            console.log("Resultado do Supabase:", r);
+            if(r.error) {
+                console.error("Erro detalhado:", r.error);
+            } else {
+                console.log("✅ Recibo salvo com sucesso!");
+            }
+        });
         
         salvarDados();
         adicionarObservacaoAuto(`✅ Pagamento confirmado!`);
