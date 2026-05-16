@@ -722,6 +722,19 @@ async function salvarDocumentoNoSupabase(doc) {
         else console.log("✅ Documento salvo na nuvem!");
     } catch(e) { console.error("Erro:", e); }
 }
+async function salvarReciboNoSupabase(recibo) {
+    try {
+        const { error } = await sb.from('recibos').insert([recibo]);
+        if(error) {
+            console.error("Erro ao salvar recibo:", error);
+        } else {
+            console.log("✅ Recibo salvo na nuvem!");
+        }
+    } catch(e) {
+        console.error("Erro de conexão:", e);
+    }
+}
+
 
 function carregarNumeroVictor() {
     const input = document.getElementById('numeroVictorInput');
@@ -1204,10 +1217,11 @@ function confirmarPagamento(id) {
         };
 
         recibos.unshift(recibo);
+
+        salvarReciboNoSupabase(recibo);
+        
         salvarDados();
-        
-        adicionarObservacaoAuto(`✅ Pagamento de R$ ${pagamento.valor.toLocaleString('pt-BR')} CONFIRMADO por Victor Hugo.`);
-        
+        adicionarObservacaoAuto(`✅ Pagamento confirmado!`);
         alert('✅ Pagamento confirmado e recibo emitido!');
 
         // 🔻 FORÇAR RECARREGAMENTO DA PÁGINA (mais confiável) 🔻
