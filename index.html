@@ -1267,15 +1267,19 @@ salvarDados();
 }
 }
 
-function removerPagamento(id){
-
-if(confirm('Remover este pagamento?')){
-
-pagamentos =
-pagamentos.filter(p => p.id !== id);
-
-salvarDados();
-}
+async function removerPagamento(id) {
+    if(confirm('Remover este pagamento?')) {
+        pagamentos = pagamentos.filter(p => p.id !== id);
+        salvarDados();
+        
+        // Remover do Supabase
+        await sb.from('pagamentos').delete().eq('id', id);
+        
+        console.log("✅ Pagamento removido do Supabase!");
+        alert('✅ Pagamento removido!');
+        
+        recarregarDados();
+    }
 }
 
 function excluirObservacao(id){
