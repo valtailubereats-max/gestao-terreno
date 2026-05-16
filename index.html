@@ -1179,11 +1179,35 @@ function adicionarPagamento(data, valor, obs) {
     }, 1000);
 }
 
-function confirmarPagamento(id) {
+async function confirmarPagamento(id) {
+    console.log("🔍 Confirmando pagamento ID:", id);
+    
     const pagamento = pagamentos.find(p => p.id === id);
-    if (pagamento) {
-        pagamento.confirmado = true;
+    if (!pagamento) {
+        alert("Pagamento não encontrado!");
+        return;
+    }
+    
+    console.log("Pagamento encontrado:", pagamento);
+    
+    try {
+        // 1. Atualizar o status no Supabase
+        console.log("📤 Atualizando status no Supabase...");
+        const { data, error } = await sb
+            .from('pagamentos')
+            .update({ confirmado: true })
+            .eq('id', id)
+            .select();
         
+        if (error) {
+            console.error("❌ Erro ao atualizar pagamento:", error);
+            alert("Erro ao confirmar pagamento: " + error.message);
+            return;
+        }
+        
+        console.log("✅ Pagamento atualizado no Supabase:", data);
+        
+        // 2. Criar o recibo
         const agora = new Date();
         const recibo = {
             id: Date.now(),
@@ -1195,20 +1219,39 @@ function confirmarPagamento(id) {
             observacao: pagamento.obs || ''
         };
         
+        console.log("📤 Salvando recibo...", recibo);
+        
+        // 3. Salvar recibo no Supabase
+        const { error: recError } = await sb.from('recibos').insert([recibo]);
+        if (recError) {
+            console.error("❌ Erro ao salvar recibo:", recError);
+        } else {
+            console.log("✅ Recibo salvo!");
+        }
+        
+        // 4. Atualizar arrays locais
+        pagamento.confirmado = true;
         recibos.unshift(recibo);
         
-        salvarReciboNoSupabase(recibo);
-        salvarDados();
+        // 5. Adicionar observação
+        await adicionarObservacaoAuto(`✅ Pagamento de R$ ${pagamento.valor.toLocaleString('pt-BR')} CONFIRMADO por Victor Hugo.`);
         
-        // Atualizar o pagamento no Supabase
-        sb.from('pagamentos').update({ confirmado: true }).eq('id', id);
+        // 6. Recarregar todos os dados
+        console.log("🔄 Recarregando dados...");
+        await carregarDoSupabase();
         
-        adicionarObservacaoAuto(`✅ Pagamento de R$ ${pagamento.valor.toLocaleString('pt-BR')} CONFIRMADO por Victor Hugo.`);
+        // 7. Atualizar todas as telas
+        atualizarDashboard();
+        atualizarTabelaPagamentos();
+        atualizarObservacoes();
+        atualizarRecibos();
+        
+        console.log("✅ Tudo atualizado!");
         alert('✅ Pagamento confirmado e recibo emitido!');
         
-        setTimeout(() => {
-            recarregarDados();
-        }, 500);
+    } catch(e) {
+        console.error("❌ Erro geral:", e);
+        alert("Erro ao confirmar pagamento: " + e.message);
     }
 }
 
