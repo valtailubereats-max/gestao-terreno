@@ -1880,20 +1880,22 @@ function fazerLogin() {
             const acessosSection = document.getElementById('acessosSection');
             if(acessosSection) acessosSection.style.display = 'block';
             carregarAcessos();
+            
+            document.getElementById('adminBadge').style.display = 'block';
+            document.getElementById('adminTab').style.display = 'block';
+            
         } else {
             btnSalvar.disabled = true;
             btnSalvar.style.opacity = "0.5";
             btnSalvar.style.cursor = "not-allowed";
             msgAdmin.style.display = "block";
             btnAdicionarTab.style.display = "none";
+            
+            document.getElementById('adminBadge').style.display = 'none';
+            document.getElementById('adminTab').style.display = 'none';
         }
 
-        if (ehAdmin) {
-            document.getElementById('adminBadge').style.display = 'block';
-            document.getElementById('adminTab').style.display = 'block';
-        }
-
-        if (ehVendedor) {
+                if (ehVendedor) {
             document.getElementById('vendedorBadge').style.display = 'block';
         }
 
