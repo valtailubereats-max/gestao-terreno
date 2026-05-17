@@ -1098,22 +1098,47 @@ function atualizarListaDocumentos() {
 // ========== FUNÇÕES PARA O FUNDO DO HEADER ==========
 async function carregarImagemFundo() {
     try {
+        console.log("🔍 Buscando imagem de fundo...");
         const { data: docs } = await sb.from('documentos').select('*');
+        
         if(docs && docs.length > 0) {
-            let fotoTerreno = docs.find(doc => doc.nome === "Foto Terreno" || doc.nome === "Foto de Frente do Terreno");
+            console.log("Documentos encontrados:", docs.map(d => d.nome));
+            
+            let fotoTerreno = docs.find(doc => doc.nome === "Foto de Frente do Terreno" || doc.nome === "Foto Terreno");
+            
             if(!fotoTerreno) {
                 fotoTerreno = docs.find(doc => doc.tipo === 'imagem');
             }
+            
             if(fotoTerreno && fotoTerreno.link) {
+                console.log("Foto encontrada:", fotoTerreno.nome);
+                console.log("Link original:", fotoTerreno.link);
+                
                 const header = document.getElementById('mainHeader');
                 let imagemUrl = fotoTerreno.link;
+                
+                // Converter link do Google Drive para imagem direta
                 if(imagemUrl.includes('drive.google.com')) {
                     const fileId = imagemUrl.match(/[-\w]{25,}/);
                     if(fileId) {
                         imagemUrl = `https://drive.google.com/uc?export=view&id=${fileId[0]}`;
+                        console.log("Link convertido:", imagemUrl);
                     }
                 }
-                header.style.backgroundImage = `url('${imagemUrl}')`;
+                
+                // Testar se a imagem carrega
+                const imgTest = new Image();
+                imgTest.onload = function() {
+                    console.log("✅ Imagem carregada com sucesso!");
+                    header.style.backgroundImage = `url('${imagemUrl}')`;
+                    header.style.backgroundSize = "cover";
+                    header.style.backgroundPosition = "center";
+                };
+                imgTest.onerror = function() {
+                    console.error("❌ Falha ao carregar imagem:", imagemUrl);
+                    header.style.backgroundImage = "none";
+                };
+                imgTest.src = imagemUrl;
                 
                 const savedOpacity = localStorage.getItem('headerOpacity');
                 const opacityValue = savedOpacity ? parseInt(savedOpacity) : 15;
@@ -1122,7 +1147,11 @@ async function carregarImagemFundo() {
                     document.getElementById('opacitySlider').value = opacityValue;
                     document.getElementById('opacityValue').innerText = opacityValue + '%';
                 }
+            } else {
+                console.log("❌ Nenhuma foto do terreno encontrada");
             }
+        } else {
+            console.log("❌ Nenhum documento encontrado");
         }
     } catch(e) {
         console.error("Erro ao carregar imagem de fundo:", e);
@@ -1150,20 +1179,28 @@ let assinaturaUrl = "https://drive.google.com/uc?export=view&id=1xIfdVrvbw7BIoDV
 
 async function carregarAssinatura() {
     try {
+        console.log("🔍 Buscando assinatura...");
         const { data: docs } = await sb.from('documentos').select('*');
+        
         if(docs && docs.length > 0) {
-            const assinaturaDoc = docs.find(doc => doc.nome === "Assinatura Victor Hugo" || doc.nome === "Assinatura Victor");
+            const assinaturaDoc = docs.find(doc => doc.nome === "Assinatura Victor Hugo");
+            
             if(assinaturaDoc && assinaturaDoc.link) {
+                console.log("Assinatura encontrada:", assinaturaDoc.nome);
+                console.log("Link original:", assinaturaDoc.link);
+                
                 let link = assinaturaDoc.link;
                 if(link.includes('drive.google.com')) {
                     const fileId = link.match(/[-\w]{25,}/);
                     if(fileId) {
                         assinaturaUrl = `https://drive.google.com/uc?export=view&id=${fileId[0]}`;
+                        console.log("Assinatura URL convertida:", assinaturaUrl);
                     }
                 } else {
                     assinaturaUrl = link;
                 }
-                console.log("✅ Assinatura carregada do Supabase:", assinaturaUrl);
+            } else {
+                console.log("❌ Documento 'Assinatura Victor Hugo' não encontrado");
             }
         }
     } catch(e) {
