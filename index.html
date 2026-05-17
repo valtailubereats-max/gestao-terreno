@@ -3,7 +3,7 @@
 <head>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>Compra do Terreno</title>
 
 <style>
@@ -19,6 +19,8 @@ body{
     background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
     min-height:100vh;
     padding:20px;
+    /* Prevenir pull-to-refresh no celular */
+    overscroll-behavior: none;
 }
 
 .container{
@@ -32,6 +34,71 @@ body{
     background:white;
     border-radius:20px;
     margin-bottom:30px;
+    position:relative;
+    overflow:hidden;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-image 0.3s ease;
+}
+
+/* Overlay para escurecer/transparentar a imagem de fundo */
+.header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, var(--opacity, 0.85));
+    z-index: 0;
+}
+
+.header > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Skeleton screen animation */
+@keyframes skeleton-loading {
+    0% { background-color: #e0e0e0; }
+    50% { background-color: #c0c0c0; }
+    100% { background-color: #e0e0e0; }
+}
+
+.skeleton-card {
+    background: #e0e0e0;
+    border-radius: 15px;
+    padding: 25px;
+    min-height: 120px;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+.skeleton-value {
+    height: 32px;
+    width: 80%;
+    background: #ccc;
+    border-radius: 8px;
+    margin-top: 10px;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+.skeleton-title {
+    height: 14px;
+    width: 60%;
+    background: #ccc;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+.skeleton-progress {
+    height: 30px;
+    width: 100%;
+    background: #ccc;
+    border-radius: 10px;
+    margin-top: 15px;
+    animation: skeleton-loading 1.5s infinite;
 }
 
 .titulo-sistema{
@@ -339,6 +406,25 @@ button{
     color:white;
 }
 
+/* Slider de opacidade */
+.opacity-slider {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.opacity-slider label {
+    font-weight: bold;
+    margin: 0;
+}
+
+.opacity-slider input {
+    flex: 1;
+    min-width: 150px;
+}
+
 @media (max-width:768px){
 
     .stats-grid{
@@ -415,7 +501,7 @@ Entrar
 
 <div id="appSection" style="display:none;">
 
-<div class="header">
+<div class="header" id="mainHeader">
 
 <h1 class="titulo-sistema">
 🏠 COMPRA DO TERRENO
@@ -440,6 +526,19 @@ style="background:#10b981;color:white;margin-top:10px;padding:12px 25px;font-siz
 🔄 Atualizar Dados
 </button>
 </div>
+
+<!-- Skeleton Screen (inicial) -->
+<div id="skeletonScreen" style="display:block;">
+<div class="stats-grid">
+    <div class="skeleton-card"><div class="skeleton-title"></div><div class="skeleton-value"></div><div class="skeleton-progress"></div></div>
+    <div class="skeleton-card"><div class="skeleton-title"></div><div class="skeleton-value"></div></div>
+    <div class="skeleton-card"><div class="skeleton-title"></div><div class="skeleton-value"></div></div>
+    <div class="skeleton-card"><div class="skeleton-title"></div><div class="skeleton-value"></div></div>
+</div>
+</div>
+
+<!-- Conteúdo real (inicialmente oculto) -->
+<div id="realContent" style="display:none;">
 
 <div class="stats-grid">
 
@@ -640,6 +739,16 @@ Registrar Pagamento
     <small style="color:#666;">Formato: 55 + DDD + número (ex: 5511988887777)</small>
 </div>
 
+<!-- SLIDER DE OPACIDADE DO HEADER (apenas admin vê) -->
+<div id="opacityControl" style="background:#f0f0f0; padding:15px; border-radius:10px; margin-bottom:20px; display:none;">
+    <div class="opacity-slider">
+        <label>🎨 Transparência do fundo (header):</label>
+        <input type="range" id="opacitySlider" min="10" max="50" value="15" step="5">
+        <span id="opacityValue">15%</span>
+    </div>
+    <small style="color:#666;">Menor % = mais transparente | Maior % = mais opaco</small>
+</div>
+
 <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
     <button onclick="exportarDados()" style="padding: 12px 25px;">
         📥 Exportar Dados
@@ -651,6 +760,8 @@ Registrar Pagamento
 </div>
 
 <input type="file" id="importFile" accept=".json" style="display:none;" onchange="processarImportacao(event)">
+
+</div>
 
 </div>
 
@@ -856,7 +967,17 @@ function atualizarListaDocumentos() {
         return;
     }
     
-    documentos.forEach(doc => {
+    // Filtrar documentos: se não for admin, ocultar o documento "Assinatura Victor Hugo"
+    const documentosFiltrados = ehAdmin 
+        ? documentos 
+        : documentos.filter(doc => doc.nome !== "Assinatura Victor Hugo" && doc.nome !== "Assinatura Victor");
+    
+    if(documentosFiltrados.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px;">Nenhum documento disponível.</div>';
+        return;
+    }
+    
+    documentosFiltrados.forEach(doc => {
         const div = document.createElement('div');
         div.className = 'doc-item';
         
@@ -880,6 +1001,87 @@ function atualizarListaDocumentos() {
     });
 }
 
+// ========== FUNÇÕES PARA O FUNDO DO HEADER ==========
+async function carregarImagemFundo() {
+    try {
+        // Buscar a foto do terreno nos documentos (pelo nome)
+        const { data: docs } = await sb.from('documentos').select('*');
+        if(docs && docs.length > 0) {
+            // Procurar por documento com nome "Foto Terreno" ou similar
+            let fotoTerreno = docs.find(doc => doc.nome === "Foto Terreno" || doc.nome === "Foto de Frente do Terreno");
+            if(!fotoTerreno) {
+                // Fallback: usar a primeira imagem encontrada
+                fotoTerreno = docs.find(doc => doc.tipo === 'imagem');
+            }
+            if(fotoTerreno && fotoTerreno.link) {
+                const header = document.getElementById('mainHeader');
+                // Converter link do Google Drive para thumbnail
+                let imagemUrl = fotoTerreno.link;
+                if(imagemUrl.includes('drive.google.com')) {
+                    const fileId = imagemUrl.match(/[-\w]{25,}/);
+                    if(fileId) {
+                        imagemUrl = `https://drive.google.com/uc?export=view&id=${fileId[0]}`;
+                    }
+                }
+                header.style.backgroundImage = `url('${imagemUrl}')`;
+                
+                // Carregar opacidade salva
+                const savedOpacity = localStorage.getItem('headerOpacity');
+                const opacityValue = savedOpacity ? parseInt(savedOpacity) : 15;
+                document.documentElement.style.setProperty('--opacity', 1 - (opacityValue / 100));
+                if(document.getElementById('opacitySlider')) {
+                    document.getElementById('opacitySlider').value = opacityValue;
+                    document.getElementById('opacityValue').innerText = opacityValue + '%';
+                }
+            }
+        }
+    } catch(e) {
+        console.error("Erro ao carregar imagem de fundo:", e);
+    }
+}
+
+function salvarOpacidade(valor) {
+    localStorage.setItem('headerOpacity', valor);
+    const opacityFloat = 1 - (valor / 100);
+    document.documentElement.style.setProperty('--opacity', opacityFloat);
+    document.getElementById('opacityValue').innerText = valor + '%';
+}
+
+function configurarSliderOpacidade() {
+    const slider = document.getElementById('opacitySlider');
+    if(slider) {
+        slider.addEventListener('input', function() {
+            salvarOpacidade(parseInt(this.value));
+        });
+    }
+}
+
+// ========== FUNÇÕES PARA ASSINATURA VINDA DO SUPABASE ==========
+let assinaturaUrl = "https://drive.google.com/uc?export=view&id=1xIfdVrvbw7BIoDVPyAHHNgoprKq5CKqY"; // fallback
+
+async function carregarAssinatura() {
+    try {
+        const { data: docs } = await sb.from('documentos').select('*');
+        if(docs && docs.length > 0) {
+            const assinaturaDoc = docs.find(doc => doc.nome === "Assinatura Victor Hugo" || doc.nome === "Assinatura Victor");
+            if(assinaturaDoc && assinaturaDoc.link) {
+                let link = assinaturaDoc.link;
+                if(link.includes('drive.google.com')) {
+                    const fileId = link.match(/[-\w]{25,}/);
+                    if(fileId) {
+                        assinaturaUrl = `https://drive.google.com/uc?export=view&id=${fileId[0]}`;
+                    }
+                } else {
+                    assinaturaUrl = link;
+                }
+                console.log("✅ Assinatura carregada do Supabase:", assinaturaUrl);
+            }
+        }
+    } catch(e) {
+        console.error("Erro ao carregar assinatura:", e);
+    }
+}
+
 // ========== FUNÇÕES PRINCIPAIS ==========
 const META_TOTAL = 100000;
 const VALOR_PARCELA = 3000;
@@ -899,7 +1101,7 @@ let usuarioAtual = null;
 let ehAdmin = false;
 let ehVendedor = false;
 
-// FUNÇÃO PARA CARREGAR DO SUPABASE (APENAS NUVEM)
+// FUNÇÃO PARA CARREGAR DO SUPABASE
 async function carregarDoSupabase() {
     try {
         console.log("Carregando do Supabase...");
@@ -928,8 +1130,7 @@ async function carregarDoSupabase() {
             observacoes = [];
         }
         
-        const { data: rec, error: errRec } = await sb
-            .from('recibos')
+        const { data: rec, error: errRec } = await sb            .from('recibos')
             .select('*');
         
         if(rec && rec.length > 0) {
@@ -938,22 +1139,27 @@ async function carregarDoSupabase() {
             recibos = [];
         }
         
+        // Esconder skeleton e mostrar conteúdo real
+        document.getElementById('skeletonScreen').style.display = 'none';
+        document.getElementById('realContent').style.display = 'block';
+        
         atualizarDashboard();
         atualizarObservacoes();
         atualizarRecibos();
         
     } catch(e) {
         console.error("Erro de conexão:", e);
+        // Em caso de erro, ainda esconde skeleton e mostra conteúdo (mesmo vazio)
+        document.getElementById('skeletonScreen').style.display = 'none';
+        document.getElementById('realContent').style.display = 'block';
     }
 }
 
 function carregarDados() {
-    // Apenas carrega do Supabase (sem localStorage)
     carregarDoSupabase();
 }
 
 function salvarDados() {
-    // Não salva no localStorage - apenas atualiza a tela
     atualizarDashboard();
     atualizarObservacoes();
     atualizarRecibos();
@@ -1191,8 +1397,6 @@ async function confirmarPagamento(id) {
     console.log("Pagamento encontrado:", pagamento);
     
     try {
-        // 1. Atualizar o status no Supabase
-        console.log("📤 Atualizando status no Supabase...");
         const { data, error } = await sb
             .from('pagamentos')
             .update({ confirmado: true })
@@ -1207,7 +1411,6 @@ async function confirmarPagamento(id) {
         
         console.log("✅ Pagamento atualizado no Supabase:", data);
         
-        // 2. Criar o recibo
         const agora = new Date();
         const recibo = {
             id: Date.now(),
@@ -1221,7 +1424,6 @@ async function confirmarPagamento(id) {
         
         console.log("📤 Salvando recibo...", recibo);
         
-        // 3. Salvar recibo no Supabase
         const { error: recError } = await sb.from('recibos').insert([recibo]);
         if (recError) {
             console.error("❌ Erro ao salvar recibo:", recError);
@@ -1229,18 +1431,14 @@ async function confirmarPagamento(id) {
             console.log("✅ Recibo salvo!");
         }
         
-        // 4. Atualizar arrays locais
         pagamento.confirmado = true;
         recibos.unshift(recibo);
         
-        // 5. Adicionar observação
         await adicionarObservacaoAuto(`✅ Pagamento de R$ ${pagamento.valor.toLocaleString('pt-BR')} CONFIRMADO por Victor Hugo.`);
         
-        // 6. Recarregar todos os dados
         console.log("🔄 Recarregando dados...");
         await carregarDoSupabase();
         
-        // 7. Atualizar todas as telas
         atualizarDashboard();
         atualizarTabelaPagamentos();
         atualizarObservacoes();
@@ -1456,11 +1654,11 @@ function imprimirRecibo(id) {
     const recibo = recibos.find(r => r.id === id);
     if (!recibo) return;
 
-    const assinaturaUrl = "https://drive.google.com/uc?export=view&id=1xIfdVrvbw7BIoDVPyAHHNgoprKq5CKqY";
     const janela = window.open('', '', 'width=800,height=900');
     
     janela.document.write(`<html><head><title>Recibo</title><style>
-        body{font-family:Arial;padding:40px;} h1{color:#10b981;text-align:center;}
+        body{font-family:'Times New Roman',Arial;padding:40px;} 
+        h1{color:#10b981;text-align:center;}
         .box{border:2px solid #10b981;border-radius:15px;padding:30px;max-width:800px;margin:0 auto;}
         .descricao-terreno{background:#f8f9fa;padding:15px;border-radius:10px;margin:15px 0;}
         .assinatura{text-align:center;margin-top:30px;}
@@ -1479,7 +1677,7 @@ function imprimirRecibo(id) {
         <p><strong>Compradores:</strong> Valtail Menegassi de Melo e Débora Fernanda Bailarin</p>
         <div class="assinatura">
             <p><strong>Assinatura do Vendedor:</strong></p>
-            <img src="${assinaturaUrl}" alt="Assinatura">
+            <img src="${assinaturaUrl}" alt="Assinatura de Victor Hugo">
             <p>Victor Hugo Bailarin</p>
         </div>
     </div>
@@ -1539,6 +1737,12 @@ function fazerLogin() {
             btnSalvar.style.cursor = "pointer";
             msgAdmin.style.display = "none";
             btnAdicionarTab.style.display = "inline-block";
+            
+            // Mostrar controle de opacidade e área de upload
+            const opacityControl = document.getElementById('opacityControl');
+            if(opacityControl) opacityControl.style.display = 'block';
+            const uploadArea = document.getElementById('uploadAreaAdmin');
+            if(uploadArea) uploadArea.style.display = 'block';
         } else {
             btnSalvar.disabled = true;
             btnSalvar.style.opacity = "0.5";
@@ -1550,17 +1754,25 @@ function fazerLogin() {
         if (ehAdmin) {
             document.getElementById('adminBadge').style.display = 'block';
             document.getElementById('adminTab').style.display = 'block';
-            const uploadArea = document.getElementById('uploadAreaAdmin');
-            if (uploadArea) uploadArea.style.display = 'block';
         }
 
         if (ehVendedor) {
             document.getElementById('vendedorBadge').style.display = 'block';
         }
 
-        carregarDados();
+        // Mostrar skeleton e esconder conteúdo real
+        document.getElementById('skeletonScreen').style.display = 'block';
+        document.getElementById('realContent').style.display = 'none';
+        
+        // Carregar tudo
+        carregarAssinatura();
+        carregarImagemFundo();
         carregarDocumentos();
         carregarNumeroVictor();
+        carregarDados();
+        configurarSliderOpacidade();
+        
+        // Atualizar dashboard e outros
         atualizarDashboard();
         atualizarObservacoes();
         atualizarRecibos();
@@ -1619,6 +1831,18 @@ async function recarregarDados() {
     await carregarDoSupabase();
     console.log("✅ Dados atualizados!");
 }
+
+// Prevenir pull-to-refresh no celular (touchmove no topo da página)
+let startY = 0;
+document.body.addEventListener('touchstart', (e) => {
+    startY = e.touches[0].clientY;
+});
+document.body.addEventListener('touchmove', (e) => {
+    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+    if (scrollTop === 0 && e.touches[0].clientY > startY) {
+        e.preventDefault();
+    }
+}, { passive: false });
 
 </script>
 
