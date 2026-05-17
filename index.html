@@ -1119,12 +1119,18 @@ async function carregarImagemFundo() {
                 
                 // Converter link do Google Drive para imagem direta
                 if(imagemUrl.includes('drive.google.com')) {
-                    const fileId = imagemUrl.match(/[-\w]{25,}/);
-                    if(fileId) {
-                        imagemUrl = `https://drive.google.com/uc?export=view&id=${fileId[0]}`;
-                        console.log("Link convertido:", imagemUrl);
-                    }
-                }
+    let fileId = null;
+    let match = imagemUrl.match(/\/file\/d\/([-\w]+)/);
+    if(match) fileId = match[1];
+    if(!match) match = imagemUrl.match(/[?&]id=([-\w]+)/);
+    if(match) fileId = match[1];
+    
+    if(fileId) {
+        // Usar thumbnail em vez de uc?export=view
+        imagemUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
+        console.log("Link convertido para thumbnail:", imagemUrl);
+    }
+}
                 
                 // Testar se a imagem carrega
                 const imgTest = new Image();
