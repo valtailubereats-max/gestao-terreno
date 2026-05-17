@@ -19,7 +19,6 @@ body{
     background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
     min-height:100vh;
     padding:20px;
-    /* Prevenir pull-to-refresh no celular */
     overscroll-behavior: none;
 }
 
@@ -42,7 +41,6 @@ body{
     transition: background-image 0.3s ease;
 }
 
-/* Overlay para escurecer/transparentar a imagem de fundo */
 .header::before {
     content: "";
     position: absolute;
@@ -59,7 +57,6 @@ body{
     z-index: 1;
 }
 
-/* Skeleton screen animation */
 @keyframes skeleton-loading {
     0% { background-color: #e0e0e0; }
     50% { background-color: #c0c0c0; }
@@ -406,7 +403,6 @@ button{
     color:white;
 }
 
-/* Slider de opacidade */
 .opacity-slider {
     margin-top: 15px;
     display: flex;
@@ -749,7 +745,16 @@ Registrar Pagamento
     <small style="color:#666;">Menor % = mais transparente | Maior % = mais opaco</small>
 </div>
 
-<div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
+<!-- SEÇÃO DE ACESSOS (apenas admin vê) -->
+<div id="acessosSection" style="background:#f0f0f0; padding:15px; border-radius:10px; margin-top:20px; display:none;">
+    <h4>📊 Registro de Acessos dos Usuários</h4>
+    <div id="listaAcessos" style="max-height:400px; overflow-y:auto;">
+        <div style="text-align:center; padding:20px;">Carregando acessos...</div>
+    </div>
+    <small style="color:#666;">Mostra os últimos 50 acessos</small>
+</div>
+
+<div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: center; margin-top:20px;">
     <button onclick="exportarDados()" style="padding: 12px 25px;">
         📥 Exportar Dados
     </button>
@@ -823,6 +828,95 @@ function salvarNumeroVictor() {
         alert('✅ Número do Victor salvo com sucesso!');
     } else {
         alert('❌ Digite um número válido');
+    }
+}
+
+// ========== FUNÇÕES PARA REGISTRO DE ACESSOS ==========
+async function registrarAcesso(usuario) {
+    try {
+        let ip = "Não disponível";
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            ip = data.ip;
+        } catch(e) {
+            console.log("Não foi possível obter IP");
+        }
+        
+        const { error } = await sb.from('acessos').insert([
+            { 
+                usuario: usuario,
+                ip: ip
+            }
+        ]);
+        if(error) console.error("Erro ao registrar acesso:", error);
+        else console.log("✅ Acesso registrado!");
+    } catch(e) {
+        console.error("Erro:", e);
+    }
+}
+
+async function carregarAcessos() {
+    if(!ehAdmin) return;
+    
+    try {
+        const { data, error } = await sb
+            .from('acessos')
+            .select('*')
+            .order('data_acesso', { ascending: false })
+            .limit(50);
+        
+        if(error) throw error;
+        
+        const container = document.getElementById('listaAcessos');
+        if(container && data) {
+            container.innerHTML = '';
+            
+            const acessosHoje = data.filter(a => {
+                const hoje = new Date().toDateString();
+                const acesso = new Date(a.data_acesso).toDateString();
+                return hoje === acesso;
+            }).length;
+            
+            const acessosSemana = data.filter(a => {
+                const semana = new Date();
+                semana.setDate(semana.getDate() - 7);
+                return new Date(a.data_acesso) >= semana;
+            }).length;
+            
+            const html = `
+                <div style="background:#e8e8e8; padding:15px; border-radius:10px; margin-bottom:20px;">
+                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                        <div><strong>📊 Total de acessos:</strong> ${data.length}</div>
+                        <div><strong>📅 Acessos hoje:</strong> ${acessosHoje}</div>
+                        <div><strong>📆 Acessos (7 dias):</strong> ${acessosSemana}</div>
+                    </div>
+                </div>
+                <div style="max-height:300px; overflow-y:auto;">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#667eea; color:white;">
+                                <th style="padding:8px;">Usuário</th>
+                                <th style="padding:8px;">Data e Hora</th>
+                                <th style="padding:8px;">IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(a => `
+                                <tr style="border-bottom:1px solid #eee;">
+                                    <td style="padding:8px;"><strong>${a.usuario}</strong></td>
+                                    <td style="padding:8px;">${new Date(a.data_acesso).toLocaleString('pt-BR')}</td>
+                                    <td style="padding:8px; font-size:11px;">${a.ip || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+    } catch(e) {
+        console.error("Erro ao carregar acessos:", e);
     }
 }
 
@@ -1004,18 +1098,14 @@ function atualizarListaDocumentos() {
 // ========== FUNÇÕES PARA O FUNDO DO HEADER ==========
 async function carregarImagemFundo() {
     try {
-        // Buscar a foto do terreno nos documentos (pelo nome)
         const { data: docs } = await sb.from('documentos').select('*');
         if(docs && docs.length > 0) {
-            // Procurar por documento com nome "Foto Terreno" ou similar
             let fotoTerreno = docs.find(doc => doc.nome === "Foto Terreno" || doc.nome === "Foto de Frente do Terreno");
             if(!fotoTerreno) {
-                // Fallback: usar a primeira imagem encontrada
                 fotoTerreno = docs.find(doc => doc.tipo === 'imagem');
             }
             if(fotoTerreno && fotoTerreno.link) {
                 const header = document.getElementById('mainHeader');
-                // Converter link do Google Drive para thumbnail
                 let imagemUrl = fotoTerreno.link;
                 if(imagemUrl.includes('drive.google.com')) {
                     const fileId = imagemUrl.match(/[-\w]{25,}/);
@@ -1025,7 +1115,6 @@ async function carregarImagemFundo() {
                 }
                 header.style.backgroundImage = `url('${imagemUrl}')`;
                 
-                // Carregar opacidade salva
                 const savedOpacity = localStorage.getItem('headerOpacity');
                 const opacityValue = savedOpacity ? parseInt(savedOpacity) : 15;
                 document.documentElement.style.setProperty('--opacity', 1 - (opacityValue / 100));
@@ -1057,7 +1146,7 @@ function configurarSliderOpacidade() {
 }
 
 // ========== FUNÇÕES PARA ASSINATURA VINDA DO SUPABASE ==========
-let assinaturaUrl = "https://drive.google.com/uc?export=view&id=1xIfdVrvbw7BIoDVPyAHHNgoprKq5CKqY"; // fallback
+let assinaturaUrl = "https://drive.google.com/uc?export=view&id=1xIfdVrvbw7BIoDVPyAHHNgoprKq5CKqY";
 
 async function carregarAssinatura() {
     try {
@@ -1130,7 +1219,8 @@ async function carregarDoSupabase() {
             observacoes = [];
         }
         
-        const { data: rec, error: errRec } = await sb            .from('recibos')
+        const { data: rec, error: errRec } = await sb
+            .from('recibos')
             .select('*');
         
         if(rec && rec.length > 0) {
@@ -1139,7 +1229,6 @@ async function carregarDoSupabase() {
             recibos = [];
         }
         
-        // Esconder skeleton e mostrar conteúdo real
         document.getElementById('skeletonScreen').style.display = 'none';
         document.getElementById('realContent').style.display = 'block';
         
@@ -1149,7 +1238,6 @@ async function carregarDoSupabase() {
         
     } catch(e) {
         console.error("Erro de conexão:", e);
-        // Em caso de erro, ainda esconde skeleton e mostra conteúdo (mesmo vazio)
         document.getElementById('skeletonScreen').style.display = 'none';
         document.getElementById('realContent').style.display = 'block';
     }
@@ -1723,6 +1811,8 @@ function fazerLogin() {
         ehAdmin = (usuario === 'Valtail');
         ehVendedor = (usuario === 'Victor Hugo');
 
+        registrarAcesso(usuario);
+
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('appSection').style.display = 'block';
         document.getElementById('usuarioLogado').innerHTML = `👋 Olá, ${usuario}!`;
@@ -1738,11 +1828,13 @@ function fazerLogin() {
             msgAdmin.style.display = "none";
             btnAdicionarTab.style.display = "inline-block";
             
-            // Mostrar controle de opacidade e área de upload
             const opacityControl = document.getElementById('opacityControl');
             if(opacityControl) opacityControl.style.display = 'block';
             const uploadArea = document.getElementById('uploadAreaAdmin');
             if(uploadArea) uploadArea.style.display = 'block';
+            const acessosSection = document.getElementById('acessosSection');
+            if(acessosSection) acessosSection.style.display = 'block';
+            carregarAcessos();
         } else {
             btnSalvar.disabled = true;
             btnSalvar.style.opacity = "0.5";
@@ -1760,11 +1852,9 @@ function fazerLogin() {
             document.getElementById('vendedorBadge').style.display = 'block';
         }
 
-        // Mostrar skeleton e esconder conteúdo real
         document.getElementById('skeletonScreen').style.display = 'block';
         document.getElementById('realContent').style.display = 'none';
         
-        // Carregar tudo
         carregarAssinatura();
         carregarImagemFundo();
         carregarDocumentos();
@@ -1772,7 +1862,6 @@ function fazerLogin() {
         carregarDados();
         configurarSliderOpacidade();
         
-        // Atualizar dashboard e outros
         atualizarDashboard();
         atualizarObservacoes();
         atualizarRecibos();
@@ -1832,7 +1921,7 @@ async function recarregarDados() {
     console.log("✅ Dados atualizados!");
 }
 
-// Prevenir pull-to-refresh no celular (touchmove no topo da página)
+// Prevenir pull-to-refresh no celular
 let startY = 0;
 document.body.addEventListener('touchstart', (e) => {
     startY = e.touches[0].clientY;
