@@ -1117,34 +1117,29 @@ async function carregarImagemFundo() {
                 const header = document.getElementById('mainHeader');
                 let imagemUrl = fotoTerreno.link;
                 
-                // Converter link do Google Drive para imagem direta
+                // Converter link do Google Drive para thumbnail
                 if(imagemUrl.includes('drive.google.com')) {
-    let fileId = null;
-    let match = imagemUrl.match(/\/file\/d\/([-\w]+)/);
-    if(match) fileId = match[1];
-    if(!match) match = imagemUrl.match(/[?&]id=([-\w]+)/);
-    if(match) fileId = match[1];
-    
-    if(fileId) {
-        // Usar thumbnail em vez de uc?export=view
-        imagemUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
-        console.log("Link convertido para thumbnail:", imagemUrl);
-    }
-}
+                    let fileId = null;
+                    let match = imagemUrl.match(/\/file\/d\/([-\w]+)/);
+                    if(match) fileId = match[1];
+                    if(!match) match = imagemUrl.match(/[?&]id=([-\w]+)/);
+                    if(match) fileId = match[1];
+                    if(!match) match = imagemUrl.match(/\/d\/([-\w]+)/);
+                    if(match) fileId = match[1];
+                    
+                    if(fileId) {
+                        imagemUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w800`;
+                        console.log("Link convertido para thumbnail:", imagemUrl);
+                    } else {
+                        console.log("❌ Não foi possível extrair o fileId");
+                    }
+                }
                 
-                // Testar se a imagem carrega
-                const imgTest = new Image();
-                imgTest.onload = function() {
-                    console.log("✅ Imagem carregada com sucesso!");
-                    header.style.backgroundImage = `url('${imagemUrl}')`;
-                    header.style.backgroundSize = "cover";
-                    header.style.backgroundPosition = "center";
-                };
-                imgTest.onerror = function() {
-                    console.error("❌ Falha ao carregar imagem:", imagemUrl);
-                    header.style.backgroundImage = "none";
-                };
-                imgTest.src = imagemUrl;
+                // Aplicar a imagem de fundo
+                header.style.backgroundImage = `url('${imagemUrl}')`;
+                header.style.backgroundSize = "cover";
+                header.style.backgroundPosition = "center";
+                console.log("✅ Imagem de fundo aplicada!");
                 
                 const savedOpacity = localStorage.getItem('headerOpacity');
                 const opacityValue = savedOpacity ? parseInt(savedOpacity) : 15;
@@ -1197,9 +1192,16 @@ async function carregarAssinatura() {
                 
                 let link = assinaturaDoc.link;
                 if(link.includes('drive.google.com')) {
-                    const fileId = link.match(/[-\w]{25,}/);
+                    let fileId = null;
+                    let match = link.match(/\/file\/d\/([-\w]+)/);
+                    if(match) fileId = match[1];
+                    if(!match) match = link.match(/[?&]id=([-\w]+)/);
+                    if(match) fileId = match[1];
+                    if(!match) match = link.match(/\/d\/([-\w]+)/);
+                    if(match) fileId = match[1];
+                    
                     if(fileId) {
-                        assinaturaUrl = `https://drive.google.com/uc?export=view&id=${fileId[0]}`;
+                        assinaturaUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w200`;
                         console.log("Assinatura URL convertida:", assinaturaUrl);
                     }
                 } else {
